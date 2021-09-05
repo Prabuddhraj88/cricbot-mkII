@@ -8,9 +8,9 @@ class URLS():
     lang="?lang=en"
     matches = ["scheduled", "live", "result"]
     home = "/home"
-    scorecard = "scorecard"
-    statistics="statistics"
-    team_players= "team-players"
+    scorecard = "/scorecard"
+    statistics="/statistics"
+    team_players= "/team-players"
     sid = "&seriesId="
     mid = "&matchId="
     imgProvSv = "https://p.imgci.com"
@@ -117,4 +117,33 @@ def get_score(sid:int, mid:int):
             " in " + str(bowler["overs"]) + " overs (E.R- " + str(bowler["economy"]) + ")\n"
     return mid, sid, series_name, versus, ground, datentime, title, state, status, score, strikers, bowlerssr
 
-    
+
+def get_scorecard(sid:int, mid:int, inning_index:int):
+    batcontainer = []
+    bowlcontainer = []
+    url = HEAD_URL[:-3] + URLS.scorecard + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    scorecard = response["content"]["scorecard"]
+    inning = scorecard["innings"][inning_index]
+    innNum = inning["inningNumber"]
+    team_name = inning["team"]["longName"]
+    team_color = inning["team"]["primaryColor"]
+    team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
+    if inning["isBatted"]:
+        runs = inning["runs"]
+        wickets = inning["wickets"]
+        overs = inning["overs"]
+        teamdet = [innNum, team_name, team_color, team_logo, runs, wickets, overs]
+        inningBatsmen = inning["inningBatsmen"]
+        inningBowlers = inning["inningBowlers"]
+        for batsman in inningBatsmen:
+            if batsman["battedType"] == "yes":
+                outinfo = "-"
+                if batsman["isOut"]:
+                    outinfo = batsman["dismissalText"]["long"]
+                batcontainer.append((batsman["player"]["name"], batsman["runs"], batsman["balls"], batsman["fours"], batsman["sixes"], batsman["strikerate"], outinfo))
+        for bowler in inningBowlers:
+            bowlcontainer.append((bowler["player"]["name"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
+                             bowler["fours"], bowler["sixes"], bowler["wides"], bowler["noballs"], bowler["maidens"], bowler["economy"]))
+        return teamdet, batcontainer, bowlcontainer
+                    
