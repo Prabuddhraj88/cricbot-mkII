@@ -1,4 +1,3 @@
-from typing import get_args
 import requests, json
 
 BASE_URL = "https://hs-consumer-api.espncricinfo.com"
