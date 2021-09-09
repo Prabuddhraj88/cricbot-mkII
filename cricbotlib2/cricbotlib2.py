@@ -1,4 +1,6 @@
-import requests, json
+import requests, io
+import matplotlib.pyplot as mp
+import numpy as np
 
 BASE_URL = "https://hs-consumer-api.espncricinfo.com"
 HEAD_URL = BASE_URL + "/v1/pages/matches/"
@@ -10,6 +12,7 @@ class URLS():
     scorecard = "/scorecard"
     statistics="/statistics"
     team_players= "/team-players"
+    commentary= "/commentary"
     sid = "&seriesId="
     mid = "&matchId="
     imgProvSv = "https://p.imgci.com"
@@ -20,7 +23,7 @@ def get_schedules(type_index:int, limit:int):
     matches = response["content"]["matches"][:limit]
     container = []
     for match in matches:
-        mid = match["id"]
+        mid = match["objectId"]
         state = match["state"]
         datentime = match["startTime"].replace('T', ' ').replace('.000Z', '')
         title = match["title"]
@@ -31,7 +34,7 @@ def get_schedules(type_index:int, limit:int):
             status = se + ": " + match["statusText"]
         else: status = match["statusEng"]
         series = match["series"]
-        sid = series["id"]
+        sid = series["objectId"]
         series_name = series["longName"]
         if match["ground"] != None:
             ground = match["ground"]["name"]
@@ -78,7 +81,7 @@ def get_score(sid:int, mid:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
     match = response["match"]
-    mid = match["id"]
+    mid = match["objectId"]
     state = match["state"]
     datentime = match["startTime"].replace('T', ' ').replace('.000Z', '')
     title = match["title"]
@@ -89,7 +92,7 @@ def get_score(sid:int, mid:int):
         status = se + ": " + match["statusText"]
     else: status = match["statusEng"]
     series = match["series"]
-    sid = series["id"]
+    sid = series["objectId"]
     series_name = series["longName"]
     if match["ground"] != None:
         ground = match["ground"]["name"]
@@ -145,4 +148,102 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
             bowlcontainer.append((bowler["player"]["name"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
                              bowler["fours"], bowler["sixes"], bowler["wides"], bowler["noballs"], bowler["maidens"], bowler["economy"]))
         return teamdet, batcontainer, bowlcontainer
-                    
+
+
+def get_comments(sid: int, mid: int, limit:int):
+    container = []
+    url = HEAD_URL[:-3] + URLS.commentary + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    comments = response["content"]["comments"]
+    for comment in comments:
+        try:
+            cid = comment["id"]
+            time = comment["timestamp"]
+            title = comment["title"]
+            if comment["commentTextItems"] != None:
+                description = comment["commentTextItems"][0]["html"]
+            else: description = "Not available"
+        except IndexError:pass
+        container.append((cid, time, title, description))
+    return (container[:-limit])[::-1]
+
+def get_statistics(sid: int, mid: int, limit:int):
+    url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).content
+    return response.decode('utf-8')
+
+def get_partnership(sid: int, mid: int, inning_index:int, partnership_index:int):
+    url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    team_name = inning["team"]["name"]
+    team_color = inning["team"]["primaryColor"]
+    partnership = inning["inningPartnerships"][partnership_index]
+
+    return team_name, team_color, partnership["runs"], partnership["overs"], (partnership["player1"]["longName"],
+        partnership["player1Runs"], partnership["player1Balls"]),(partnership["player2"]["longName"],
+        partnership["player2Runs"], partnership["player2Balls"])
+
+def get_partnershipGraph(sid: int, mid: int, inning_index:int):
+    url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    team_name = inning["team"]["name"]
+    team_color = inning["team"]["primaryColor"]
+    team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
+    partnerships = inning["inningPartnerships"]
+    x, runs, balls = [], [], []
+    for partnership in partnerships:
+        x.append(partnership["player1"]["fieldingName"]+"\n"+partnership["player2"]["fieldingName"])
+        runs.append(partnership["runs"])
+        balls.append(partnership["balls"])
+    x_pos = [i for i, _ in enumerate(x)]
+    mp.bar(x_pos, runs, color=team_color, width=0.7)
+    mp.xlabel("Partners")
+    mp.ylabel("Runs")
+    mp.title("Partnerships: "+team_name)
+    mp.xticks(x_pos, x, fontsize=7)
+    r = sorted(runs)
+    highest_score = int(r[len(runs)-1])
+    mp.yticks(np.arange(0, highest_score+10, step=15))
+    for i in range(len(runs)):
+        mp.annotate(str(runs[i])+' in ' +
+                    str(balls[i]), (x_pos[i]-0.3, runs[i]+1), fontsize=8)
+    fig = mp.gcf()
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    mp.cla()
+    return buf, team_name, team_color, team_logo
+
+def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
+    url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    inningWickets = response["content"]["inningsPerformance"]["innings"][inning_index]["inningWickets"]
+    team = response["content"]["inningsPerformance"]["innings"][inning_index]["team"]
+    team_name = team["longName"]
+    team_color = team["primaryColor"]
+    team_logo = URLS.imgProvSv + team["image"]["url"]
+    x, o, s = [], [], []
+    for wicket in inningWickets:
+        x.append(wicket["player"]["fieldingName"])
+        o.append(float(wicket['fowOvers']))
+        s.append(int(wicket['fowRuns']))
+    mp.xticks(np.arange(0, int(o[len(o)-1]+100), step=5))
+    mp.yticks(np.arange(0, int(s[len(s)-1]+100), step=15))
+    mp.title('Fall of wicket: '+team_name, fontsize=14)
+    mp.xlabel('Overs', fontsize=14)
+    mp.ylabel('Runs', fontsize=14)
+    mp.plot(o, s, color='red', marker='o', linewidth=3,
+            markerfacecolor='red', markersize=8, label='Wickets')
+    for i in range(len(o)):
+        mp.annotate(x[i] + '\n('+str(s[i])+'-'+str(o[i])+')',
+                    (o[i]+0.1, s[i]-2), fontsize=7)
+    mp.plot(o, s, color=team_color, label='Runs')
+    mp.legend(loc='lower right')
+    fig = mp.gcf()
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    mp.cla()
+    return buf, team_name, team_color, team_logo
