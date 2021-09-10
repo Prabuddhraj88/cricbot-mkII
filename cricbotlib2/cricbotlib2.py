@@ -1,11 +1,11 @@
-import requests, io
+import requests, io, base64
 import matplotlib.pyplot as mp
 import numpy as np
 
-BASE_URL = "https://hs-consumer-api.espncricinfo.com"
+BASE_URL = base64.b64decode("aHR0cHM6Ly9ocy1jb25zdW1lci1hcGkuZXNwbmNyaWNpbmZvLmNvbQ==").decode("utf-8")
 HEAD_URL = BASE_URL + "/v1/pages/matches/"
 
-class URLS():
+class URLS:
     lang="?lang=en"
     matches = ["scheduled", "live", "result"]
     home = "/home"
@@ -15,7 +15,7 @@ class URLS():
     commentary= "/commentary"
     sid = "&seriesId="
     mid = "&matchId="
-    imgProvSv = "https://p.imgci.com"
+    imgProvSv = base64.b64decode("aHR0cHM6Ly9wLmltZ2NpLmNvbQ==").decode("utf-8")
 
 def get_schedules(type_index:int, limit:int):
     url=HEAD_URL + URLS.matches[type_index] + URLS.lang
@@ -47,7 +47,6 @@ def get_schedules(type_index:int, limit:int):
         container.append((mid, sid, series_name, versus, ground, datentime, title, state, status))
     return container[-5:]
 
-
 def get_player(sid:int, mid:int, player_index:int, team_index:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
@@ -75,7 +74,6 @@ def get_player(sid:int, mid:int, player_index:int, team_index:int):
     player_image = URLS.imgProvSv + player["image"]["url"]
     return role, team_name, team_color, team_logo, player_name, player_gender, player_playingRole,\
     player_battingStyle, player_bowlingStyles, player_image
-
 
 def get_score(sid:int, mid:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
@@ -119,7 +117,6 @@ def get_score(sid:int, mid:int):
             " in " + str(bowler["overs"]) + " overs (E.R- " + str(bowler["economy"]) + ")\n"
     return mid, sid, series_name, versus, ground, datentime, title, state, status, score, strikers, bowlerssr
 
-
 def get_scorecard(sid:int, mid:int, inning_index:int):
     batcontainer = []
     bowlcontainer = []
@@ -148,7 +145,6 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
             bowlcontainer.append((bowler["player"]["name"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
                              bowler["fours"], bowler["sixes"], bowler["wides"], bowler["noballs"], bowler["maidens"], bowler["economy"]))
         return teamdet, batcontainer, bowlcontainer
-
 
 def get_comments(sid: int, mid: int, limit:int):
     container = []
