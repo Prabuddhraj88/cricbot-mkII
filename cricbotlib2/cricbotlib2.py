@@ -168,7 +168,7 @@ def get_comments(sid: int, mid: int, limit:int):
     return (container[:-limit])[::-1]
 
 def get_statistics(sid: int, mid: int, limit:int):
-    url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    url = HEAD_URL[:-3] + URLS.team_players + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).content
     return response.decode('utf-8')
 
@@ -247,3 +247,42 @@ def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
     buf.seek(0)
     mp.cla()
     return buf, team_name, team_color, team_logo
+
+def get_bestbatsmen(sid: int, mid: int, inning_index:int):
+    container = []
+    url = HEAD_URL[:-3] + URLS.team_players + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    players = response["content"]["matchPlayers"]["teamPlayers"][inning_index]
+    team_name = players["team"]["name"]
+    team_color = players["team"]["primaryColor"]
+    for player in players["bestBatsmen"]:
+        name = player["player"]["longName"]
+        image = URLS.imgProvSv + player["player"]["image"]["url"]
+        matches = player["matches"]
+        runs = player["runs"]
+        innings = player["innings"]
+        average = player["average"]
+        notouts = player["notouts"]
+        strikerate = player["strikerate"]
+        container.append((name, image, matches, runs, innings, average, notouts, strikerate))
+    return container, team_name, team_color
+
+def get_bestbowlers(sid: int, mid: int, inning_index:int):
+    container = []
+    url = HEAD_URL[:-3] + URLS.team_players + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    players = response["content"]["matchPlayers"]["teamPlayers"][inning_index]
+    team_name = players["team"]["name"]
+    team_color = players["team"]["primaryColor"]
+    for player in players["bestBowlers"]:
+        name = player["player"]["longName"]
+        image = URLS.imgProvSv + player["player"]["image"]["url"]
+        matches = player["matches"]
+        wickets = player["wickets"]
+        innings = player["innings"]
+        average = player["average"]
+        runs = player["conceded"]
+        economy = player["economy"]
+        balls = player["balls"]
+        container.append((name, image, matches, wickets, innings, average, runs, economy, balls))
+    return container, team_name, team_color
