@@ -17,7 +17,7 @@ class URLS:
     mid = "&matchId="
     imgProvSv = base64.b64decode("aHR0cHM6Ly9wLmltZ2NpLmNvbQ==").decode("utf-8")
 
-def get_schedules(type_index:int, limit:int):
+def get_schedules(type_index:int, limit:int, searchby):
     url=HEAD_URL + URLS.matches[type_index] + URLS.lang
     response = requests.get(url).json()
     matches = response["content"]["matches"][:limit]
@@ -45,7 +45,13 @@ def get_schedules(type_index:int, limit:int):
             versus += team["team"]["slug"] + " v "
         versus = versus[:-2]
         container.append((mid, sid, series_name, versus, ground, datentime, title, state, status))
+    if searchby != None:
+        for i in container:
+            if searchby not in i[2] or searchby not in i[3] or searchby not in i[6]:
+                container.pop(i)
+    if container == []: return None
     return container[-5:]
+
 
 def get_player(sid:int, mid:int, player_index:int, team_index:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
@@ -162,11 +168,6 @@ def get_comments(sid: int, mid: int, limit:int):
         except IndexError:pass
         container.append((cid, time, title, description))
     return (container[:-limit])[::-1]
-
-def get_statistics(sid: int, mid: int, limit:int):
-    url = HEAD_URL[:-3] + URLS.team_players + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
-    response = requests.get(url).content
-    return response.decode('utf-8')
 
 def get_partnership(sid: int, mid: int, inning_index:int, partnership_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
