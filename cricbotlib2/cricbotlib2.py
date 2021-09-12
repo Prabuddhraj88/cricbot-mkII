@@ -17,11 +17,11 @@ class URLS:
     mid = "&matchId="
     imgProvSv = base64.b64decode("aHR0cHM6Ly9wLmltZ2NpLmNvbQ==").decode("utf-8")
 
-def get_schedules(type_index:int, limit:int, searchby):
+def get_schedules(type_index:int, limit:int, searchby=None):
     url=HEAD_URL + URLS.matches[type_index] + URLS.lang
     response = requests.get(url).json()
     matches = response["content"]["matches"][:limit]
-    container = []
+    container, idcontainer = [], []
     for match in matches:
         mid = match["objectId"]
         state = match["state"]
@@ -42,16 +42,16 @@ def get_schedules(type_index:int, limit:int, searchby):
         teams = match["teams"]
         versus = ""
         for team in teams:
-            versus += team["team"]["slug"] + " v "
-        versus = versus[:-2]
-        container.append((mid, sid, series_name, versus, ground, datentime, title, state, status))
+            versus += team["team"]["name"] + " vs "
+        versus = versus[:-3]
+        idcontainer.append((sid, mid))
+        container.append((series_name, versus, ground, datentime, title, state, status))
     if searchby != None:
         for i in container:
-            if searchby not in i[2] or searchby not in i[3] or searchby not in i[6]:
-                container.pop(i)
+            if searchby not in i[2]:
+                container.remove(i)
     if container == []: return None
-    return container[-5:]
-
+    return container[-5:], idcontainer[-5:]
 
 def get_player(sid:int, mid:int, player_index:int, team_index:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
@@ -85,7 +85,6 @@ def get_score(sid:int, mid:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
     match = response["match"]
-    mid = match["objectId"]
     state = match["state"]
     datentime = match["startTime"].replace('T', ' ').replace('.000Z', '')
     title = match["title"]
@@ -96,32 +95,38 @@ def get_score(sid:int, mid:int):
         status = se + ": " + match["statusText"]
     else: status = match["statusEng"]
     series = match["series"]
-    sid = series["objectId"]
     series_name = series["longName"]
     if match["ground"] != None:
         ground = match["ground"]["name"]
     else: ground = "Not Available"
     teams = match["teams"]
     versus, score = "", ""
+    team_colors, team_logos = [], []
     for team in teams:
-        versus += team["team"]["slug"] + " v "
-        score += team["score"] 
+        a=""
+        versus += team["team"]["name"] + " vs "
+        if team["isLive"]:a="*"
+        if team["score"] != None: 
+            score += f"***{team['team']['name']}:***\n{team['score']}{a}"
         if team["scoreInfo"] != None:
             score += " (" + team["scoreInfo"] + ")"
         score += "\n"
+        team_colors.append(team["team"]["primaryColor"])
+        team_logos.append(URLS.imgProvSv + team["team"]["image"]["url"])
     versus = versus[:-2]
+    strikers, bowlerssr = None, None
     livePerformance = response["content"]["livePerformance"]
-    batsmen = livePerformance["batsmen"]
-    bowlers = livePerformance["bowlers"]
-    strikers = ""
-    bowlerssr = ""
-    for batsman in batsmen:
-        strikers += batsman["player"]["longName"] + "- " + str(batsman["runs"]) + \
-            " in " + str(batsman["balls"]) + " (S.R- " + str(batsman["strikerate"]) + ")\n"
-    for bowler in bowlers:
-        bowlerssr += bowler["player"]["longName"] + "- " + str(bowler["conceded"]) + "-" + str(bowler["wickets"]) +\
-            " in " + str(bowler["overs"]) + " overs (E.R- " + str(bowler["economy"]) + ")\n"
-    return mid, sid, series_name, versus, ground, datentime, title, state, status, score, strikers, bowlerssr
+    if livePerformance is not None:
+        batsmen = livePerformance["batsmen"]
+        bowlers = livePerformance["bowlers"]
+        strikers, bowlerssr = "", ""
+        for batsman in batsmen:
+            strikers += batsman["player"]["longName"] + "- " + str(batsman["runs"]) + \
+                " in " + str(batsman["balls"]) + " (S.R- " + str(batsman["strikerate"]) + ")\n"
+        for bowler in bowlers:
+            bowlerssr += bowler["player"]["longName"] + "- " + str(bowler["conceded"]) + "-" + str(bowler["wickets"]) +\
+                " in " + str(bowler["overs"]) + " overs (E.R- " + str(bowler["economy"]) + ")\n"
+    return series_name, versus, ground, datentime, title, state, status, score, strikers, bowlerssr, team_colors, team_logos
 
 def get_scorecard(sid:int, mid:int, inning_index:int):
     batcontainer = []
