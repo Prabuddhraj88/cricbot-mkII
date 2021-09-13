@@ -40,7 +40,6 @@ async def schedule(ctx, search_query=None, schedule_type=2, limit=5):
     embed = embedder.schedule_embed(data, limit)
     await ctx.send(embed=embed)
 
-
 @bot.command(aliases=['scor', 'skor', 'miniscore', 'msc'])
 async def score(ctx, match_index=1):
     channel_id = ctx.message.channel.id
@@ -48,6 +47,14 @@ async def score(ctx, match_index=1):
     data = cb2.get_score(sid, mid)
     embed = embedder.score_embed(data, mid, sid, 2)
     await ctx.send(embed=embed)
-    
+
+@bot.command(aliases=['scd', 'scrd', 'scoreard', 'sd'])
+async def scorecard(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_scorecard(sid, mid, inning_index-1)
+    embed = embedder.scorecard_embed(data, sid, mid, inning_index-1)
+    await ctx.send(embed)
+
 auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')
 bot.run(auth_token)

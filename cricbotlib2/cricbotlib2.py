@@ -135,7 +135,6 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
     response = requests.get(url).json()
     scorecard = response["content"]["scorecard"]
     inning = scorecard["innings"][inning_index]
-    innNum = inning["inningNumber"]
     team_name = inning["team"]["longName"]
     team_color = inning["team"]["primaryColor"]
     team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
@@ -143,7 +142,7 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
         runs = inning["runs"]
         wickets = inning["wickets"]
         overs = inning["overs"]
-        teamdet = [innNum, team_name, team_color, team_logo, runs, wickets, overs]
+        teamdet = [team_name, team_color, team_logo, runs, wickets, overs]
         inningBatsmen = inning["inningBatsmen"]
         inningBowlers = inning["inningBowlers"]
         for batsman in inningBatsmen:
@@ -151,9 +150,10 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
                 outinfo = "-"
                 if batsman["isOut"]:
                     outinfo = batsman["dismissalText"]["long"]
-                batcontainer.append((batsman["player"]["name"], batsman["runs"], batsman["balls"], batsman["fours"], batsman["sixes"], batsman["strikerate"], outinfo))
+                batcontainer.append((batsman["player"]["fieldingName"], batsman["runs"], batsman["balls"],
+                                    batsman["fours"], batsman["sixes"], batsman["strikerate"], outinfo))
         for bowler in inningBowlers:
-            bowlcontainer.append((bowler["player"]["name"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
+            bowlcontainer.append((bowler["player"]["fieldingName"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
                              bowler["fours"], bowler["sixes"], bowler["wides"], bowler["noballs"], bowler["maidens"], bowler["economy"]))
         return teamdet, batcontainer, bowlcontainer
 
