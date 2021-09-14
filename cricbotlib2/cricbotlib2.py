@@ -133,6 +133,7 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
     bowlcontainer = []
     url = HEAD_URL[:-3] + URLS.scorecard + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
+    state = response["match"]["state"]
     scorecard = response["content"]["scorecard"]
     inning = scorecard["innings"][inning_index]
     team_name = inning["team"]["longName"]
@@ -142,19 +143,20 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
         runs = inning["runs"]
         wickets = inning["wickets"]
         overs = inning["overs"]
-        teamdet = [team_name, team_color, team_logo, runs, wickets, overs]
+        teamdet = [team_name, team_color, team_logo, runs, wickets, overs, state]
         inningBatsmen = inning["inningBatsmen"]
         inningBowlers = inning["inningBowlers"]
         for batsman in inningBatsmen:
             if batsman["battedType"] == "yes":
+                stts = ""
+                if not batsman["isOut"]: stts = "*"
                 outinfo = "-"
                 if batsman["isOut"]:
                     outinfo = batsman["dismissalText"]["long"]
-                batcontainer.append((batsman["player"]["fieldingName"], batsman["runs"], batsman["balls"],
+                batcontainer.append((stts + batsman["player"]["fieldingName"], batsman["runs"], batsman["balls"],
                                     batsman["fours"], batsman["sixes"], batsman["strikerate"], outinfo))
         for bowler in inningBowlers:
-            bowlcontainer.append((bowler["player"]["fieldingName"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["dots"],
-                             bowler["fours"], bowler["sixes"], bowler["wides"], bowler["noballs"], bowler["maidens"], bowler["economy"]))
+            bowlcontainer.append((bowler["player"]["fieldingName"], bowler["conceded"], bowler["overs"], bowler["wickets"], bowler["maidens"], bowler["economy"]))
         return teamdet, batcontainer, bowlcontainer
 
 def get_comments(sid: int, mid: int, limit:int):

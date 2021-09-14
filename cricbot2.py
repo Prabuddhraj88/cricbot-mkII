@@ -54,7 +54,7 @@ async def scorecard(ctx, match_index=1, inning_index=1):
     sid, mid = id_container[channel_id][match_index-1]
     data = cb2.get_scorecard(sid, mid, inning_index-1)
     embed = embedder.scorecard_embed(data, sid, mid, inning_index-1)
-    await ctx.send(embed)
+    await ctx.send(embed=embed)
 
 auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')
 bot.run(auth_token)

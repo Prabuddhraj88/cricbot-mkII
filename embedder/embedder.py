@@ -22,7 +22,7 @@ def hex2discolor(hexcolor: str):
     return discord.Color.from_rgb(r, g, b)
 
 def string_validator(string: str, limit: int):
-    chars = list("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢ")
+    chars = list("ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ")
     default_chars = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     new_string = ""
     string = str(string)[:limit]
@@ -30,12 +30,7 @@ def string_validator(string: str, limit: int):
         if i not in default_chars:new_string += i;continue
         new_string += chars[default_chars.index(i)]
     spaces = limit-len(new_string)
-    if spaces > 1000:
-        double_space = round(spaces/2)
-        single_space = spaces - double_space*2
-        adsp = "　"*double_space + " "*single_space
-        new_string = new_string + adsp
-    return new_string + " "*spaces
+    return new_string + "　"*spaces
 
 def score_embed(data, mid, sid, colorIndex=1):
     updateStatus = "NUA"
@@ -65,30 +60,33 @@ def schedule_embed(data, limit):
 
 def scorecard_embed(data, sid, mid, inning_index):
     updateStatus = "NUA"
-    if data == "LIVE":
-        updateStatus = "UA"
-    sessionid = f"SCRD-{updateStatus}-{mid}-{sid}-{inning_index}"
     team_details, scorecardBat, scorecardBowl = data
-    embed_data = "```py\n"
-    embed_data += string_validator("Name", 15) + "　"
-    embed_data += string_validator("Run", 3) + "　"
-    embed_data += string_validator("Ball", 4) + "　"
-    embed_data += string_validator("4s", 3) + "　"
-    embed_data += string_validator("6s", 3) + "　"
-    embed_data += string_validator("S.R", 6) + "　\n"
-    
-    for i in scorecardBat:
-        embed_data += string_validator(i[0].split(" ")[0], 15) + " 　"
-        embed_data += string_validator(f"{i[1]:03}", 3) + " 　"
-        embed_data += string_validator(f"{i[2]:03}", 3) + "　"
-        embed_data += string_validator(f"{i[3]:02}", 2) + "　"
-        embed_data += string_validator(f"{i[4]:02}", 2) + "　"
-        embed_data += string_validator(f"{i[5]:.2f}", 6) + "　\n"
-    embed_data += "```"
-    embed = discord.Embed(title=team_details[0], color=hex2discolor(team_details[1]))
+    if team_details[6] == "LIVE": updateStatus = "UA"
+    sessionid = f"SCRD-{updateStatus}-{mid}-{sid}-{inning_index}"
+    embed = discord.Embed(title=f"{team_details[0]} | {team_details[6]}", color=hex2discolor(team_details[1]))
     embed.set_author(name="Scorecard", icon_url=team_details[2])
     embed.set_thumbnail(url=team_details[2])
     embed.add_field(name="Score:", value=f" {team_details[3]}/{team_details[4]} ({team_details[5]})", inline=True)
+    embed_data = "```py\n"
+    embed_data += string_validator("Name", 7) + " "
+    embed_data += "Run　Ball　4s　6s　S.R\n"
+    embed_data += "```"
+    embed_data += "```py\n"
+    for i in scorecardBat:    
+        embed_data += string_validator(i[0].split(" ")[0], 7) + " "
+        embed_data += f"{i[1]:03}　{i[2]:03}　{i[3]:02}　{i[4]:02}　{i[5]:.0f}\n"
+    embed_data += "```\n"
     embed.add_field(name="Batting", value=embed_data, inline=False)
+    embed_data = "```py\n"
+    embed_data += string_validator("Name", 7) + " "
+    embed_data += "Run　Ovrs　Wt　Md　E.R\n"
+    embed_data += "```"
+    embed_data += "```py\n"
+    for i in scorecardBowl:
+        embed_data += string_validator(i[0].split(" ")[0].split("-")[0], 7) + " "
+        embed_data += f"{i[1]:03}　{i[2]:4.1f}　{i[3]:02}　{i[4]:02}　{i[5]:.1f}\n"
+    embed_data += "```"
+    embed.add_field(name="Bowling", value=embed_data, inline=False)
+
     embed.set_footer(text=sessionid, icon_url=team_details[2])
-    return embed_data
+    return embed
