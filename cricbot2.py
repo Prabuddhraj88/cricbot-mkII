@@ -33,8 +33,9 @@ async def credits(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['sch', 'routine', 'list'])
-async def schedule(ctx, search_query=None, schedule_type=2, limit=5):
+async def schedule(ctx, schedule_type=2, limit=5):
     channel_id = ctx.message.channel.id
+    search_query = None
     data, ids = cb2.get_schedules(schedule_type-1, limit, search_query)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, limit)
@@ -54,6 +55,14 @@ async def scorecard(ctx, match_index=1, inning_index=1):
     sid, mid = id_container[channel_id][match_index-1]
     data = cb2.get_scorecard(sid, mid, inning_index-1)
     embed = embedder.scorecard_embed(data, sid, mid, inning_index-1)
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['commentary', 'comm', 'comment', 'commentry'])
+async def comments(ctx, match_index=1, limit=5):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_comments(sid, mid, limit)
+    embed = embedder.comments_embed(data, sid, mid, limit)
     await ctx.send(embed=embed)
 
 auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')

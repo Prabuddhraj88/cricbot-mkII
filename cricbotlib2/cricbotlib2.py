@@ -1,3 +1,4 @@
+from inspect import getcomments
 import requests, io, base64
 import matplotlib.pyplot as mp
 import numpy as np
@@ -163,18 +164,20 @@ def get_comments(sid: int, mid: int, limit:int):
     container = []
     url = HEAD_URL[:-3] + URLS.commentary + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    comments = response["content"]["comments"]
+    comments = response["content"]["comments"][:limit]
+    state = response["match"]["state"]
     for comment in comments:
         try:
-            cid = comment["id"]
-            time = comment["timestamp"]
+            time = "00.00.00 00:00"
+            if comment["timestamp"] != None:
+                time = comment["timestamp"].split('.')[0].replace('T', ' ')
             title = comment["title"]
             if comment["commentTextItems"] != None:
                 description = comment["commentTextItems"][0]["html"]
             else: description = "Not available"
         except IndexError:pass
-        container.append((cid, time, title, description))
-    return (container[:-limit])[::-1]
+        container.append((time, title, description))
+    return (container[-5:])[::-1], state
 
 def get_partnership(sid: int, mid: int, inning_index:int, partnership_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)

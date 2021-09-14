@@ -36,7 +36,7 @@ def score_embed(data, mid, sid, colorIndex=1):
     updateStatus = "NUA"
     if data[5] == "LIVE":
         updateStatus = "UA"
-    sessionid = f"SC-{updateStatus}-{mid}-{sid}"
+    sessionid = f"SC-{updateStatus}-{sid}-{mid}"
     embed = discord.Embed(
         title=data[0], color=hex2discolor(data[10][colorIndex-1]))
     embed.set_author(name=data[5], icon_url=data[11][colorIndex-1])
@@ -62,7 +62,7 @@ def scorecard_embed(data, sid, mid, inning_index):
     updateStatus = "NUA"
     team_details, scorecardBat, scorecardBowl = data
     if team_details[6] == "LIVE": updateStatus = "UA"
-    sessionid = f"SCRD-{updateStatus}-{mid}-{sid}-{inning_index}"
+    sessionid = f"SCRD-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"{team_details[0]} | {team_details[6]}", color=hex2discolor(team_details[1]))
     embed.set_author(name="Scorecard", icon_url=team_details[2])
     embed.set_thumbnail(url=team_details[2])
@@ -87,6 +87,18 @@ def scorecard_embed(data, sid, mid, inning_index):
         embed_data += f"{i[1]:03}　{i[2]:4.1f}　{i[3]:02}　{i[4]:02}　{i[5]:.1f}\n"
     embed_data += "```"
     embed.add_field(name="Bowling", value=embed_data, inline=False)
-
     embed.set_footer(text=sessionid, icon_url=team_details[2])
+    return embed
+
+def comments_embed(data, sid, mid, limit):
+    updateStatus = "NUA"
+    if data[1] == "LIVE": updateStatus = "UA"
+    sessionid = f"CMTRY-{updateStatus}-{sid}-{mid}-{limit}"
+    embed = discord.Embed(title=f"Commentary | {data[1]}", color=hex2discolor(None))
+    if data[0] == []:
+        embed.add_field(name="Note:", value="No commentary available", inline=True)
+        return embed
+    for i in data[0]:
+        embed.add_field(name=f"[{i[0]}] {i[1]}", value=i[2], inline=False)
+    embed.set_footer(text=sessionid)
     return embed
