@@ -200,7 +200,9 @@ def get_partnership(sid: int, mid: int, inning_index:int):
 def get_partnershipGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    except IndexError: return None
+    state = response["match"]["state"]
     team_name = inning["team"]["name"]
     team_color = inning["team"]["primaryColor"]
     team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
@@ -227,7 +229,7 @@ def get_partnershipGraph(sid: int, mid: int, inning_index:int):
     fig.savefig(buf, format='png')
     buf.seek(0)
     mp.cla()
-    return buf, team_name, team_color, team_logo
+    return buf, state, team_name, team_color, team_logo
 
 def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)

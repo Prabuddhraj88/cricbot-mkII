@@ -73,5 +73,13 @@ async def partnership(ctx, match_index=1, inning_index=1):
     embed = embedder.partnership_embed(data, sid, mid, inning_index-1)
     await ctx.send(embed=embed)
 
+@bot.command(aliases=['pshipg', 'pgraph', 'pspgraph', 'partnership-graph'])
+async def partnershipgraph(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_partnershipGraph(sid, mid, inning_index-1)
+    embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index-1)
+    await ctx.send(file=embed[1], embed=embed[0])
+
 auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')
 bot.run(auth_token)

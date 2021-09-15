@@ -1,4 +1,5 @@
 import discord
+from discord.embeds import EmptyEmbed
 
 def invite_embed():
     embed = discord.Embed(title="cricbot Invite",
@@ -120,3 +121,19 @@ def partnership_embed(data, sid, mid, inning_index):
             inline=False)
     embed.set_footer(text=sessionid, icon_url=data[0][3])
     return embed
+
+def partnershipGraph_embed(data, sid, mid, inning_index):
+    if data == None:
+        embed = discord.Embed()
+        embed.add_field(name="Note", value="Partnership data not avaliable as of now.", inline=False)
+        return embed, None
+    updateStatus = "NUA"
+    if data[1] == "LIVE": updateStatus = "UA"
+    sessionid = f"PSPG-{updateStatus}-{sid}-{mid}-{inning_index}"
+    embed = discord.Embed(title=f"Partnership Graph | {data[1]}", color=hex2discolor(data[3]))
+    embed.set_author(name=data[2], icon_url=data[4])
+    embed.set_thumbnail(url=data[4])
+    file = discord.File(fp=data[0], filename=f"{sid}{mid}.png")
+    embed.set_image(url=f"attachment://{sid}{mid}.png")
+    embed.set_footer(text=sessionid, icon_url=data[4])
+    return embed, file
