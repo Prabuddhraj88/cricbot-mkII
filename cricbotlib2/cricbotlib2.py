@@ -1,4 +1,3 @@
-from inspect import getcomments
 import requests, io, base64
 import matplotlib.pyplot as mp
 import numpy as np
@@ -231,14 +230,16 @@ def get_partnershipGraph(sid: int, mid: int, inning_index:int):
     mp.cla()
     return buf, state, team_name, team_color, team_logo
 
-def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
+def get_fallofwicketsGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    inningWickets = response["content"]["inningsPerformance"]["innings"][inning_index]["inningWickets"]
-    team = response["content"]["inningsPerformance"]["innings"][inning_index]["team"]
-    team_name = team["longName"]
-    team_color = team["primaryColor"]
-    team_logo = URLS.imgProvSv + team["image"]["url"]
+    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    except IndexError: return None
+    state = response["match"]["state"]
+    team_name = inning["team"]["name"]
+    team_color = inning["team"]["primaryColor"]
+    team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
+    inningWickets = inning["inningWickets"]
     x, o, s = [], [], []
     for wicket in inningWickets:
         x.append(wicket["player"]["fieldingName"])
@@ -253,7 +254,7 @@ def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
             markerfacecolor='red', markersize=8, label='Wickets')
     for i in range(len(o)):
         mp.annotate(x[i] + '\n('+str(s[i])+'-'+str(o[i])+')',
-                    (o[i]+0.1, s[i]-2), fontsize=7)
+                    (o[i]+2, s[i]-2), fontsize=7)
     mp.plot(o, s, color=team_color, label='Runs')
     mp.legend(loc='lower right')
     fig = mp.gcf()
@@ -261,7 +262,7 @@ def get_fallofwicketGraph(sid: int, mid: int, inning_index:int):
     fig.savefig(buf, format='png')
     buf.seek(0)
     mp.cla()
-    return buf, team_name, team_color, team_logo
+    return buf, state, team_name, team_color, team_logo
 
 def get_bestbatsmen(sid: int, mid: int, inning_index:int):
     container = []

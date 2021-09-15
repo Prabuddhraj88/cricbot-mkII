@@ -1,8 +1,9 @@
-import discord, os
+import discord
 from discord.ext.commands.errors import CommandInvokeError, CommandNotFound
 from cricbotlib2 import cricbotlib2 as cb2
 from discord.ext import commands, tasks
 from embedder import embedder
+from config import config
 
 id_container = {}
 
@@ -41,7 +42,7 @@ async def schedule(ctx, schedule_type=2, limit=5):
     embed = embedder.schedule_embed(data, limit)
     await ctx.send(embed=embed)
 
-@bot.command(aliases=['scor', 'skor', 'miniscore', 'msc'])
+@bot.command(aliases=['scor', 'ms', 'miniscore', 'msc'])
 async def score(ctx, match_index=1):
     channel_id = ctx.message.channel.id
     sid, mid = id_container[channel_id][match_index-1]
@@ -81,5 +82,12 @@ async def partnershipgraph(ctx, match_index=1, inning_index=1):
     embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index-1)
     await ctx.send(file=embed[1], embed=embed[0])
 
-auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')
-bot.run(auth_token)
+@bot.command(aliases=['fow', 'fall', 'fowgraph', 'out-graph'])
+async def fallofwicket(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_fallofwicketsGraph(sid, mid, inning_index-1)
+    embed = embedder.fallofwicketsGraph_embed(data, sid, mid, inning_index-1)
+    await ctx.send(file=embed[1], embed=embed[0])
+
+bot.run(config.auth_token)
