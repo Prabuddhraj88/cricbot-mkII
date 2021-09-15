@@ -65,5 +65,13 @@ async def comments(ctx, match_index=1, limit=5):
     embed = embedder.comments_embed(data, sid, mid, limit)
     await ctx.send(embed=embed)
 
+@bot.command(aliases=['pship', 'partner', 'psp', 'synergy'])
+async def partnership(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_partnership(sid, mid, inning_index-1)
+    embed = embedder.partnership_embed(data, sid, mid, inning_index-1)
+    await ctx.send(embed=embed)
+
 auth_token = os.environ.get('EXPERIMENTAL_BOT_TOKEN')
 bot.run(auth_token)

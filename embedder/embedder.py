@@ -102,3 +102,21 @@ def comments_embed(data, sid, mid, limit):
         embed.add_field(name=f"[{i[0]}] {i[1]}", value=i[2], inline=False)
     embed.set_footer(text=sessionid)
     return embed
+
+def partnership_embed(data, sid, mid, inning_index):
+    if data == None:
+        embed = discord.Embed()
+        embed.add_field(name="Note", value="Partnership data not avaliable as of now.", inline=False)
+        return embed
+    updateStatus = "NUA"
+    if data[0][0] == "LIVE": updateStatus = "UA"
+    sessionid = f"PSP-{updateStatus}-{sid}-{mid}-{inning_index}"
+    embed = discord.Embed(title=f"Partnership | {data[0][0]}", color=hex2discolor(data[0][2]))
+    embed.set_author(name=data[0][1], icon_url=data[0][3])
+    embed.set_thumbnail(url=data[0][3])
+    for j, i in enumerate(data[1]):
+        embed.add_field(name=f"{str(j)}. {i[2]} x {i[5]} ({i[0]} in {i[1]} ov.)",
+            value=f"*{i[2]}: {i[3]} in {i[4]} balls*\n*{i[5]}: {i[6]} in {i[7]} balls*",
+            inline=False)
+    embed.set_footer(text=sessionid, icon_url=data[0][3])
+    return embed

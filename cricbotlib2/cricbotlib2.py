@@ -179,17 +179,23 @@ def get_comments(sid: int, mid: int, limit:int):
         container.append((time, title, description))
     return (container[-5:])[::-1], state
 
-def get_partnership(sid: int, mid: int, inning_index:int, partnership_index:int):
+def get_partnership(sid: int, mid: int, inning_index:int):
+    container, subcontainer = [], []
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    except IndexError: return None
     team_name = inning["team"]["name"]
     team_color = inning["team"]["primaryColor"]
-    partnership = inning["inningPartnerships"][partnership_index]
-
-    return team_name, team_color, partnership["runs"], partnership["overs"], (partnership["player1"]["longName"],
-        partnership["player1Runs"], partnership["player1Balls"]),(partnership["player2"]["longName"],
-        partnership["player2Runs"], partnership["player2Balls"])
+    team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
+    state = response["match"]["state"]
+    container.append((state, team_name, team_color, team_logo))
+    for partnership in inning["inningPartnerships"]:
+        subcontainer.append([partnership["runs"], partnership["overs"], partnership["player1"]["longName"],
+        partnership["player1Runs"], partnership["player1Balls"],partnership["player2"]["longName"],
+        partnership["player2Runs"], partnership["player2Balls"]])
+    container.append(subcontainer)
+    return container 
 
 def get_partnershipGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
