@@ -90,4 +90,20 @@ async def fallofwicket(ctx, match_index=1, inning_index=1):
     embed = embedder.fallofwicketsGraph_embed(data, sid, mid, inning_index-1)
     await ctx.send(file=embed[1], embed=embed[0])
 
+@bot.command(aliases=['bestbatsman', 'batsman', 'bestbatter', 'batter'])
+async def bestbatsmen(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_bestbatsmen(sid, mid, inning_index-1)
+    embed = embedder.bestbatsmen_embed(data)
+    await ctx.send(embed=embed)
+
+@bot.command(aliases=['bestbowler', 'bowlers', 'bestballer', 'bestballers'])
+async def bestbowlers(ctx, match_index=1, inning_index=1):
+    channel_id = ctx.message.channel.id
+    sid, mid = id_container[channel_id][match_index-1]
+    data = cb2.get_bestbowlers(sid, mid, inning_index-1)
+    embed = embedder.bestbowlers_embed(data)
+    await ctx.send(embed=embed)
+
 bot.run(config.auth_token)

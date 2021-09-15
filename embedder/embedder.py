@@ -153,3 +153,25 @@ def fallofwicketsGraph_embed(data, sid, mid, inning_index):
     embed.set_image(url=f"attachment://{sid}{mid}.png")
     embed.set_footer(text=sessionid, icon_url=data[4])
     return embed, file
+
+def bestbatsmen_embed(data):
+    embed = discord.Embed(title=f"Best Batsman of the Inning", color=hex2discolor(data[2]))
+    embed.set_author(name=data[1], icon_url=data[0][0][1])
+    embed.set_thumbnail(url=data[3])
+    for i in data[0]:
+        embed.add_field(name=i[0], 
+        value=f"*Matches*: {i[2]} | *Runs*: {i[3]} | *Innings*: {i[4]}\n\
+        *Average*: {i[5]} | *NotOuts*: {i[6]} | *Strikerate*: {i[7]}", inline=False)
+    embed.set_footer(text=".", icon_url=data[0][-1][1])
+    return embed
+
+def bestbowlers_embed(data):
+    embed = discord.Embed(title=f"Best Bowler of the Inning", color=hex2discolor(data[2]))
+    embed.set_author(name=data[1], icon_url=data[0][0][1])
+    embed.set_thumbnail(url=data[3])
+    for i in data[0]:
+        embed.add_field(name=i[0], 
+        value=f"*Matches*: {i[2]} | *Wickets*: {i[3]} | *Innings*: {i[4]}\n\
+        *Average*: {i[5]} | *Conceded*: {i[6]} | *Economy*: {i[7]}\n*Balls*:{i[8]}", inline=False)
+    embed.set_footer(text=".", icon_url=data[0][-1][1])
+    return embed

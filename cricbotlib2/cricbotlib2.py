@@ -271,6 +271,7 @@ def get_bestbatsmen(sid: int, mid: int, inning_index:int):
     players = response["content"]["matchPlayers"]["teamPlayers"][inning_index]
     team_name = players["team"]["name"]
     team_color = players["team"]["primaryColor"]
+    team_logo = URLS.imgProvSv + players["team"]["image"]["url"]
     for player in players["bestBatsmen"]:
         name = player["player"]["longName"]
         image = URLS.imgProvSv + player["player"]["image"]["url"]
@@ -281,7 +282,7 @@ def get_bestbatsmen(sid: int, mid: int, inning_index:int):
         notouts = player["notouts"]
         strikerate = player["strikerate"]
         container.append((name, image, matches, runs, innings, average, notouts, strikerate))
-    return container, team_name, team_color
+    return container, team_name, team_color, team_logo
 
 def get_bestbowlers(sid: int, mid: int, inning_index:int):
     container = []
@@ -290,6 +291,7 @@ def get_bestbowlers(sid: int, mid: int, inning_index:int):
     players = response["content"]["matchPlayers"]["teamPlayers"][inning_index]
     team_name = players["team"]["name"]
     team_color = players["team"]["primaryColor"]
+    team_logo = URLS.imgProvSv + players["team"]["image"]["url"]
     for player in players["bestBowlers"]:
         name = player["player"]["longName"]
         image = URLS.imgProvSv + player["player"]["image"]["url"]
@@ -301,4 +303,4 @@ def get_bestbowlers(sid: int, mid: int, inning_index:int):
         economy = player["economy"]
         balls = player["balls"]
         container.append((name, image, matches, wickets, innings, average, runs, economy, balls))
-    return container, team_name, team_color
+    return container, team_name, team_color, team_logo
