@@ -7,10 +7,21 @@ from config import config
 
 id_container = {}
 
-bot=commands.Bot(command_prefix='cb ')
+bot=commands.Bot(command_prefix=config.bot_prefix)
+
+@tasks.loop(seconds=config.STATUS_REFRESH_TIME)
+async def activity_changer():
+    schedules, ids = cb2.get_schedules(2, 15, searchby=config.TRACK_MATCH)
+    if len(schedules) == 0:
+        schedules, ids = cb2.get_schedules(2, 5, searchby=None)
+        if len(schedules) == 0:data = "No Live match available."
+        else:data = cb2.get_activity(ids[0][0], ids[0][1])
+    else:data = cb2.get_activity(ids[0][0], ids[0][1])
+    await bot.change_presence(activity=discord.Game(name=data), status=discord.Status.idle)
 
 @bot.event
 async def on_ready():
+    activity_changer.start()
     print('bot is online.')
 
 @bot.command(aliases=['inv', 'invit'])
@@ -45,49 +56,49 @@ async def schedule(ctx, schedule_type=2, limit=5):
 @bot.command(aliases=['scor', 'ms', 'miniscore', 'msc'])
 async def score(ctx, match_index=1):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_score(sid, mid)
-    embed = embedder.score_embed(data, mid, sid, 2)
+    embed = embedder.score_embed(data, mid, sid, igs, 2)
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['scd', 'scrd', 'scoreard', 'sd'])
 async def scorecard(ctx, match_index=1, inning_index=1):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_scorecard(sid, mid, inning_index-1)
-    embed = embedder.scorecard_embed(data, sid, mid, inning_index-1)
+    embed = embedder.scorecard_embed(data, sid, mid, inning_index-1, igs)
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['commentary', 'comm', 'comment', 'commentry'])
 async def comments(ctx, match_index=1, limit=5):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_comments(sid, mid, limit)
-    embed = embedder.comments_embed(data, sid, mid, limit)
+    embed = embedder.comments_embed(data, sid, mid, limit, igs)
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['pship', 'partner', 'psp', 'synergy'])
 async def partnership(ctx, match_index=1, inning_index=1):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_partnership(sid, mid, inning_index-1)
-    embed = embedder.partnership_embed(data, sid, mid, inning_index-1)
+    embed = embedder.partnership_embed(data, sid, mid, inning_index-1, igs)
     await ctx.send(embed=embed)
 
 @bot.command(aliases=['pshipg', 'pgraph', 'pspgraph', 'partnership-graph'])
 async def partnershipgraph(ctx, match_index=1, inning_index=1):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_partnershipGraph(sid, mid, inning_index-1)
-    embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index-1)
+    embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index-1, igs)
     await ctx.send(file=embed[1], embed=embed[0])
 
 @bot.command(aliases=['fow', 'fall', 'fowgraph', 'out-graph'])
 async def fallofwicket(ctx, match_index=1, inning_index=1):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
+    sid, mid, igs = id_container[channel_id][match_index-1]
     data = cb2.get_fallofwicketsGraph(sid, mid, inning_index-1)
-    embed = embedder.fallofwicketsGraph_embed(data, sid, mid, inning_index-1)
+    embed = embedder.fallofwicketsGraph_embed(data, sid, mid, inning_index-1, igs)
     await ctx.send(file=embed[1], embed=embed[0])
 
 @bot.command(aliases=['bestbatsman', 'batsman', 'bestbatter', 'batter'])

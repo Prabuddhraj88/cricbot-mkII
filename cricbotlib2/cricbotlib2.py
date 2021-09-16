@@ -44,7 +44,8 @@ def get_schedules(type_index:int, limit:int, searchby=None):
         for team in teams:
             versus += team["team"]["name"] + " vs "
         versus = versus[:-3]
-        idcontainer.append((sid, mid))
+        total_innings = match["liveInning"]
+        idcontainer.append((sid, mid, total_innings))
         container.append((series_name, versus, ground, datentime, title, state, status))
     if searchby != None:
         for i in container:
@@ -304,3 +305,16 @@ def get_bestbowlers(sid: int, mid: int, inning_index:int):
         balls = player["balls"]
         container.append((name, image, matches, wickets, innings, average, runs, economy, balls))
     return container, team_name, team_color, team_logo
+
+def get_activity(sid:int, mid:int):
+    url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    response = requests.get(url).json()
+    match = response["match"]
+    teams = match["teams"]
+    string = teams[0]['team']['abbreviation'][:3] + " v " + teams[1]['team']['abbreviation'][:3] + " | "
+    team = teams[-1]
+    if team["score"] != None: 
+        string += team['score']
+    if team["scoreInfo"] != None:
+        string += "(" + team["scoreInfo"] + ")"
+    return string
