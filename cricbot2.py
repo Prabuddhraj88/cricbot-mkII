@@ -1,9 +1,10 @@
-import discord
+import discord, base64
 from discord.ext.commands.errors import CommandInvokeError, CommandNotFound
 from cricbotlib2 import cricbotlib2 as cb2
 from discord.ext import commands, tasks
 from embedder import embedder, reaction_listener
 from config import config
+from discord import FFmpegPCMAudio
 
 id_container = {}
 ids4updater = []
@@ -151,7 +152,7 @@ async def code(ctx):
 @bot.command(aliases=['credit', 'cred', 'creds'])
 async def credits(ctx):
     embed = discord.Embed(title="Cricbot-2.0 : Your own cricket bot", color=0x03f8fc)
-    embed.add_field(name='API Disclaim: ', value="I don't own cricbot API. it is owned by Yahoo! cricket. This is an unofficial use of this API which is not public.", inline=False)    
+    embed.add_field(name='API Disclaim: ', value="This API is owned by ESPNsports cricket and radio garden. It is an unofficial use of this API which is not public.", inline=False)    
     embed.add_field(name='Developed by:', value='0x0is1', inline=False)
     await ctx.send(embed=embed)
 
@@ -246,5 +247,18 @@ async def bestbowlers(ctx, schedule_type=1):
     await message.add_reaction(config.arrows_emojis[0])
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
+
+
+@bot.command(aliases=['listen'])
+async def radio(ctx):
+    URL = base64.b64decode("aHR0cHM6Ly9henVyYS5zaG91dGNhLnN0L3JhZGlvLzg2MjAvcmFkaW8ubXAz")
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
+    if ctx.message.author.voice == None:
+        await ctx.send("No Voice Channel", "You need to be in a voice channel to use this command!")
+        return
+    starter_channel = ctx.message.author.voice.channel
+    vc = await starter_channel.connect()    
+    source = FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
+    vc.play(source)
 
 bot.run(config.auth_token)
