@@ -248,9 +248,8 @@ async def bestbowlers(ctx, schedule_type=1):
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
 
-
 @bot.command(aliases=['listen'])
-async def radio(ctx):
+async def radio(ctx, cmd="start"):
     URL = base64.b64decode("aHR0cHM6Ly9henVyYS5zaG91dGNhLnN0L3JhZGlvLzg2MjAvcmFkaW8ubXAz")
     FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5','options': '-vn'}
     if ctx.message.author.voice == None:
@@ -258,7 +257,8 @@ async def radio(ctx):
         return
     starter_channel = ctx.message.author.voice.channel
     vc = await starter_channel.connect()    
-    source = FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
-    vc.play(source)
-
+    if cmd=="start":
+        source = FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
+        vc.play(source)
+    else: vc.stop()
 bot.run(config.auth_token)
