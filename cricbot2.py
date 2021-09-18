@@ -28,6 +28,7 @@ async def on_ready():
 async def on_reaction_add(reaction, user):
     message = reaction.message
     if not user.bot and message.author == bot.user:
+        await message.remove_reaction(str(reaction), user)
         channel = message.channel
         reaction = str(reaction)
         sessionid = message.embeds[0].footer.text.split('-')
@@ -39,38 +40,72 @@ async def on_reaction_add(reaction, user):
                 if reaction == config.arrows_emojis[0]:limit -= 5
                 if reaction == config.arrows_emojis[1]:limit += 5
                 if limit < 5:limit = 5
-                data, ids = cb2.get_schedules(schedule_type-1, limit, None)
+                data, ids = cb2.get_schedules(schedule_type, limit, None)
                 id_container[channel.id] = ids
-                embed = embedder.schedule_embed(data, schedule_type-1, limit, module_name)
-                await message.edit(embed=embed)
+                embed = embedder.schedule_embed(data, schedule_type, limit, module_name)
+                await message.edit(embed=embed)               
             if reaction in config.num_emojis:
                 matchindex = config.num_emojis.index(reaction)
                 sessionid.pop(0)
                 sid, mid, igs = id_container[channel.id][matchindex-1]
                 embed = reaction_listener.on_schedule_select(sessionid, sid, mid)
-                await message.edit(embed=embed)
-                try:
-                    for i in range(1, 6):
-                        await message.remove_reaction(config.num_emojis[i], bot.user)
-                except Exception:pass
-                for i in range(1, int(igs)+1):    
-                    await message.add_reaction(config.num_emojis[i])
+                if igs != None and "INN" in embed.footer.text:
+                    await message.edit(embed=embed)
+                    try:
+                        for i in range(1, 6):
+                            await message.remove_reaction(config.num_emojis[i], bot.user)
+                    except Exception:pass
+                    try:
+                        for i in range(0, 2):
+                            await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                    except Exception:pass
+                    if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
+                        await message.add_reaction(config.arrows_emojis[4])
+                        await message.add_reaction(config.arrows_emojis[5])
+
+                        for i in range(1, int(igs)+1):    
+                            await message.add_reaction(config.num_emojis[i])
         if sessionid[0] == "INN":
             if reaction in config.num_emojis:
                 sessionid.pop(0)
                 sid, mid = int(sessionid[1]), int(sessionid[2])
                 inning_index = config.num_emojis.index(reaction)
-                embed = reaction_listener.on_inning_select(sessionid, sid, mid, inning_index-1)
-
-                if len(embed) == 2:
-                    try:await message.delete()
+                try:
+                    embed = reaction_listener.on_inning_select(sessionid, sid, mid, inning_index-1)
+                    try:
+                        for i in range(1, 5):
+                            await message.remove_reaction(config.num_emojis[i], bot.user)
                     except Exception:pass
-                    await channel.send(embed=embed[0], file=embed[1])
-                else: await message.edit(embed=embed)
-                
+                    try:
+                        for i in range(0, 2):
+                            await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                    except Exception:pass
+                    
+                    if len(embed) == 2:
+                        try:await message.delete()
+                        except Exception:pass
+                        message = await channel.send(embed=embed[0], file=embed[1])
+                        try:
+                            if "NUA" not in embed[0].footer.text and "UA" in embed[0].footer.text:
+                                await message.add_reaction(config.arrows_emojis[5])
+                        except TypeError:pass
+                    else: 
+                        await message.edit(embed=embed)
+                        if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
+                            await message.add_reaction(config.arrows_emojis[5])
+                    await message.add_reaction(config.arrows_emojis[4])
+                except IndexError:pass
         else:
             if reaction == config.arrows_emojis[4]:
                 embed = reaction_listener.refresher(sessionid)
+                try:
+                    for i in range(1, 5):
+                        await message.remove_reaction(config.num_emojis[i], bot.user)
+                except Exception:pass
+                try:
+                    for i in range(0, 2):
+                        await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                except Exception:pass
                 if len(embed) == 2:
                     try:await message.delete()
                     except Exception:pass
@@ -97,17 +132,8 @@ async def credits(ctx):
     embed.add_field(name='Developed by:', value='0x0is1', inline=False)
     await ctx.send(embed=embed)
 
-'''
-@bot.command(aliases=['sch', 'routine', 'list'])
-async def schedule(ctx, schedule_type=2, limit=5):
-    channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type-1, limit, search_query)
-    id_container[channel_id] = ids
-    embed = embedder.schedule_embed(data, limit)
-    await ctx.send(embed=embed)
-'''
 @bot.command(aliases=['scor', 'ms', 'miniscore', 'msc'])
-async def score(ctx, schedule_type=2):
+async def score(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -117,10 +143,9 @@ async def score(ctx, schedule_type=2):
     for i in range(1, 6):
         await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['scd', 'scrd', 'scoreard', 'sd'])
-async def scorecard(ctx, schedule_type=2):
+async def scorecard(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -130,10 +155,9 @@ async def scorecard(ctx, schedule_type=2):
     for i in range(1, 6):
         await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['commentary', 'comm', 'comment', 'commentry'])
-async def comments(ctx, schedule_type=2):
+async def comments(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -142,10 +166,9 @@ async def comments(ctx, schedule_type=2):
     await message.add_reaction(config.arrows_emojis[0])
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['pship', 'partner', 'psp', 'synergy'])
-async def partnership(ctx, schedule_type=2):
+async def partnership(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -154,10 +177,9 @@ async def partnership(ctx, schedule_type=2):
     await message.add_reaction(config.arrows_emojis[0])
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['pshipg', 'pgraph', 'pspgraph', 'partnership-graph'])
-async def partnershipgraph(ctx, schedule_type=2):
+async def partnershipgraph(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -167,10 +189,9 @@ async def partnershipgraph(ctx, schedule_type=2):
     for i in range(1, 6):
         await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['fow', 'fall', 'fowgraph', 'out-graph'])
-async def fallofwicket(ctx, schedule_type=2):
+async def fallofwicket(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -180,10 +201,9 @@ async def fallofwicket(ctx, schedule_type=2):
     for i in range(1, 6):
         await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['bestbatsman', 'batsman', 'bestbatter', 'batter'])
-async def bestbatsmen(ctx, schedule_type=2):
+async def bestbatsmen(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -192,10 +212,9 @@ async def bestbatsmen(ctx, schedule_type=2):
     await message.add_reaction(config.arrows_emojis[0])
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['bestbowler', 'bowlers', 'bestballer', 'bestballers'])
-async def bestbowlers(ctx, schedule_type=2):
+async def bestbowlers(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
@@ -204,6 +223,5 @@ async def bestbowlers(ctx, schedule_type=2):
     await message.add_reaction(config.arrows_emojis[0])
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
-    await message.add_reaction(config.arrows_emojis[4])
 
 bot.run(config.auth_token)

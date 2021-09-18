@@ -85,7 +85,6 @@ def on_inning_select(args:list, sid, mid, inning_index):
         embed = embedder.partnership_embed(data, sid, mid, inning_index)
 
     if args[0] == "PSPG":
-        inning_index = int(args[4])
         data = cb2.get_partnershipGraph(sid, mid, inning_index)
         embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index)
 

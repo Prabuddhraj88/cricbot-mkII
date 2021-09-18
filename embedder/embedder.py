@@ -34,7 +34,7 @@ def string_validator(string: str, limit: int):
 
 def score_embed(data, mid, sid, colorIndex=1):
     updateStatus = "NUA"
-    if data[5] == "LIVE":
+    if data[5] == "LIVE" or data[5] == "PRE":
         updateStatus = "UA"
     sessionid = f"SC-{updateStatus}-{sid}-{mid}-{colorIndex}"
     embed = discord.Embed(
@@ -61,7 +61,7 @@ def schedule_embed(data, matchtype, limit, module_name):
 def scorecard_embed(data, sid, mid, inning_index):
     updateStatus = "NUA"
     team_details, scorecardBat, scorecardBowl = data
-    if team_details[6] == "LIVE": updateStatus = "UA"
+    if team_details[6] == "LIVE" or data[6] == "PRE": updateStatus = "UA"
     sessionid = f"SCRD-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"{team_details[0]} | {team_details[6]}", color=hex2discolor(team_details[1]))
     embed.set_author(name="Scorecard", icon_url=team_details[2])
