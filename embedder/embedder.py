@@ -32,11 +32,11 @@ def string_validator(string: str, limit: int):
     spaces = limit-len(new_string)
     return new_string + "　"*spaces
 
-def score_embed(data, mid, sid, igs, colorIndex=1):
+def score_embed(data, mid, sid, colorIndex=1):
     updateStatus = "NUA"
     if data[5] == "LIVE":
         updateStatus = "UA"
-    sessionid = f"SC-{updateStatus}-{sid}-{mid}-{igs}-{colorIndex}"
+    sessionid = f"SC-{updateStatus}-{sid}-{mid}-{colorIndex}"
     embed = discord.Embed(
         title=data[0], color=hex2discolor(data[10][colorIndex-1]))
     embed.set_author(name=data[5], icon_url=data[11][colorIndex-1])
@@ -49,20 +49,20 @@ def score_embed(data, mid, sid, igs, colorIndex=1):
     embed.set_footer(text=sessionid, icon_url=data[11][colorIndex-1])
     return embed
 
-def schedule_embed(data, limit):
-    sessionid = f"SCH-NUA-{limit}"
-    embed = discord.Embed(title="Schedule", color=0x03f8fc)
+def schedule_embed(data, matchtype, limit, module_name):
+    sessionid = f"SCH-{module_name}-{matchtype}-{limit}"
+    embed = discord.Embed(title=f"Schedule | {matchtype}", color=0x03f8fc)
     for j, i in enumerate(data):
         embed.add_field(name=f"{str(j+1)}. {i[0]} | {i[4]} | {i[5]}",
                         value=f"{i[1]}\n**Date**: {i[3]} |  **Venue**: {i[2]}\n*{i[6]}*", inline=False)
     embed.set_footer(text=sessionid)
     return embed
 
-def scorecard_embed(data, sid, mid, inning_index, igs):
+def scorecard_embed(data, sid, mid, inning_index):
     updateStatus = "NUA"
     team_details, scorecardBat, scorecardBowl = data
     if team_details[6] == "LIVE": updateStatus = "UA"
-    sessionid = f"SCRD-{updateStatus}-{sid}-{mid}-{inning_index}-{igs}"
+    sessionid = f"SCRD-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"{team_details[0]} | {team_details[6]}", color=hex2discolor(team_details[1]))
     embed.set_author(name="Scorecard", icon_url=team_details[2])
     embed.set_thumbnail(url=team_details[2])
@@ -90,10 +90,10 @@ def scorecard_embed(data, sid, mid, inning_index, igs):
     embed.set_footer(text=sessionid, icon_url=team_details[2])
     return embed
 
-def comments_embed(data, sid, mid, limit, igs):
+def comments_embed(data, sid, mid, limit):
     updateStatus = "NUA"
     if data[1] == "LIVE": updateStatus = "UA"
-    sessionid = f"CMTRY-{updateStatus}-{sid}-{mid}-{limit}-{igs}"
+    sessionid = f"CMTRY-{updateStatus}-{sid}-{mid}-{limit}"
     embed = discord.Embed(title=f"Commentary | {data[1]}", color=hex2discolor(None))
     if data[0] == []:
         embed.add_field(name="Note:", value="No commentary available", inline=True)
@@ -103,32 +103,32 @@ def comments_embed(data, sid, mid, limit, igs):
     embed.set_footer(text=sessionid)
     return embed
 
-def partnership_embed(data, sid, mid, inning_index, igs):
+def partnership_embed(data, sid, mid, inning_index):
     if data == None:
         embed = discord.Embed()
         embed.add_field(name="Note", value="Partnership data not avaliable as of now.", inline=False)
         return embed
     updateStatus = "NUA"
     if data[0][0] == "LIVE": updateStatus = "UA"
-    sessionid = f"PSP-{updateStatus}-{sid}-{mid}-{inning_index}-{igs}"
+    sessionid = f"PSP-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"Partnership | {data[0][0]}", color=hex2discolor(data[0][2]))
     embed.set_author(name=data[0][1], icon_url=data[0][3])
     embed.set_thumbnail(url=data[0][3])
     for j, i in enumerate(data[1]):
-        embed.add_field(name=f"{str(j)}. {i[2]} x {i[5]} ({i[0]} in {i[1]} ov.)",
+        embed.add_field(name=f"{str(j+1)}. {i[2]} x {i[5]} ({i[0]} in {i[1]} ov.)",
             value=f"*{i[2]}: {i[3]} in {i[4]} balls*\n*{i[5]}: {i[6]} in {i[7]} balls*",
             inline=False)
     embed.set_footer(text=sessionid, icon_url=data[0][3])
     return embed
 
-def partnershipGraph_embed(data, sid, mid, inning_index, igs):
+def partnershipGraph_embed(data, sid, mid, inning_index):
     if data == None:
         embed = discord.Embed()
         embed.add_field(name="Note", value="**Partnership** data not avaliable as of now.", inline=False)
         return embed, None
     updateStatus = "NUA"
     if data[1] == "LIVE": updateStatus = "UA"
-    sessionid = f"PSPG-{updateStatus}-{sid}-{mid}-{inning_index}-{igs}"
+    sessionid = f"PSPG-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"Partnership Graph | {data[1]}", color=hex2discolor(data[3]))
     embed.set_author(name=data[2], icon_url=data[4])
     embed.set_thumbnail(url=data[4])
@@ -137,14 +137,14 @@ def partnershipGraph_embed(data, sid, mid, inning_index, igs):
     embed.set_footer(text=sessionid, icon_url=data[4])
     return embed, file
 
-def fallofwicketsGraph_embed(data, sid, mid, inning_index, igs):
+def fallofwicketsGraph_embed(data, sid, mid, inning_index):
     if data == None:
         embed = discord.Embed()
         embed.add_field(name="Note", value="**Fall of wickets** data not avaliable as of now.", inline=False)
         return embed, None
     updateStatus = "NUA"
     if data[1] == "LIVE": updateStatus = "UA"
-    sessionid = f"FOW-{updateStatus}-{sid}-{mid}-{inning_index}-{igs}"
+    sessionid = f"FOW-{updateStatus}-{sid}-{mid}-{inning_index}"
     embed = discord.Embed(title=f"Fall of wicket Graph | {data[1]}", color=hex2discolor(data[3]))
     embed.set_author(name=data[2], icon_url=data[4])
     embed.set_thumbnail(url=data[4])
@@ -173,4 +173,9 @@ def bestbowlers_embed(data):
         value=f"*Matches*: {i[2]} | *Wickets*: {i[3]} | *Innings*: {i[4]}\n\
         *Average*: {i[5]} | *Conceded*: {i[6]} | *Economy*: {i[7]}\n*Balls*:{i[8]}", inline=False)
     embed.set_footer(text=".", icon_url=data[0][-1][1])
+    return embed
+
+def getinning_embed(sessionid):
+    embed = discord.Embed(title=f"Select the inning")
+    embed.set_footer(text=sessionid)
     return embed

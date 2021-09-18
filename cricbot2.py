@@ -2,7 +2,7 @@ import discord
 from discord.ext.commands.errors import CommandInvokeError, CommandNotFound
 from cricbotlib2 import cricbotlib2 as cb2
 from discord.ext import commands, tasks
-from embedder import embedder
+from embedder import embedder, reaction_listener
 from config import config
 
 id_container = {}
@@ -24,6 +24,59 @@ async def on_ready():
     activity_changer.start()
     print('bot is online.')
 
+@bot.event
+async def on_reaction_add(reaction, user):
+    message = reaction.message
+    if not user.bot and message.author == bot.user:
+        channel = message.channel
+        reaction = str(reaction)
+        sessionid = message.embeds[0].footer.text.split('-')
+        if sessionid[0] == "SCH":
+            schedule_type = int(sessionid[2])
+            limit = int(sessionid[3])
+            module_name = sessionid[1]
+            if reaction in config.arrows_emojis:
+                if reaction == config.arrows_emojis[0]:limit -= 5
+                if reaction == config.arrows_emojis[1]:limit += 5
+                if limit < 5:limit = 5
+                data, ids = cb2.get_schedules(schedule_type-1, limit, None)
+                id_container[channel.id] = ids
+                embed = embedder.schedule_embed(data, schedule_type-1, limit, module_name)
+                await message.edit(embed=embed)
+            if reaction in config.num_emojis:
+                matchindex = config.num_emojis.index(reaction)
+                sessionid.pop(0)
+                sid, mid, igs = id_container[channel.id][matchindex-1]
+                embed = reaction_listener.on_schedule_select(sessionid, sid, mid)
+                await message.edit(embed=embed)
+                try:
+                    for i in range(1, 6):
+                        await message.remove_reaction(config.num_emojis[i], bot.user)
+                except Exception:pass
+                for i in range(1, int(igs)+1):    
+                    await message.add_reaction(config.num_emojis[i])
+        if sessionid[0] == "INN":
+            if reaction in config.num_emojis:
+                sessionid.pop(0)
+                sid, mid = int(sessionid[1]), int(sessionid[2])
+                inning_index = config.num_emojis.index(reaction)
+                embed = reaction_listener.on_inning_select(sessionid, sid, mid, inning_index-1)
+
+                if len(embed) == 2:
+                    try:await message.delete()
+                    except Exception:pass
+                    await channel.send(embed=embed[0], file=embed[1])
+                else: await message.edit(embed=embed)
+                
+        else:
+            if reaction == config.arrows_emojis[4]:
+                embed = reaction_listener.refresher(sessionid)
+                if len(embed) == 2:
+                    try:await message.delete()
+                    except Exception:pass
+                    await channel.send(embed=embed[0], file=embed[1])
+                else: await message.edit(embed=embed)
+
 @bot.command(aliases=['inv', 'invit'])
 async def invite(ctx):
     await ctx.send(embed=embedder.invite_embed())
@@ -44,77 +97,113 @@ async def credits(ctx):
     embed.add_field(name='Developed by:', value='0x0is1', inline=False)
     await ctx.send(embed=embed)
 
+'''
 @bot.command(aliases=['sch', 'routine', 'list'])
 async def schedule(ctx, schedule_type=2, limit=5):
     channel_id = ctx.message.channel.id
-    search_query = None
     data, ids = cb2.get_schedules(schedule_type-1, limit, search_query)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, limit)
     await ctx.send(embed=embed)
-
+'''
 @bot.command(aliases=['scor', 'ms', 'miniscore', 'msc'])
-async def score(ctx, match_index=1):
+async def score(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_score(sid, mid)
-    embed = embedder.score_embed(data, mid, sid, igs, 2)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "SC")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):
+        await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['scd', 'scrd', 'scoreard', 'sd'])
-async def scorecard(ctx, match_index=1, inning_index=1):
+async def scorecard(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_scorecard(sid, mid, inning_index-1)
-    embed = embedder.scorecard_embed(data, sid, mid, inning_index-1, igs)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "SCRD")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):
+        await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['commentary', 'comm', 'comment', 'commentry'])
-async def comments(ctx, match_index=1, limit=5):
+async def comments(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_comments(sid, mid, limit)
-    embed = embedder.comments_embed(data, sid, mid, limit, igs)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "CMTRY")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['pship', 'partner', 'psp', 'synergy'])
-async def partnership(ctx, match_index=1, inning_index=1):
+async def partnership(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_partnership(sid, mid, inning_index-1)
-    embed = embedder.partnership_embed(data, sid, mid, inning_index-1, igs)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data,schedule_type, 5, "PSP")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['pshipg', 'pgraph', 'pspgraph', 'partnership-graph'])
-async def partnershipgraph(ctx, match_index=1, inning_index=1):
+async def partnershipgraph(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_partnershipGraph(sid, mid, inning_index-1)
-    embed = embedder.partnershipGraph_embed(data, sid, mid, inning_index-1, igs)
-    await ctx.send(file=embed[1], embed=embed[0])
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "PSPG")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):
+        await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['fow', 'fall', 'fowgraph', 'out-graph'])
-async def fallofwicket(ctx, match_index=1, inning_index=1):
+async def fallofwicket(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid, igs = id_container[channel_id][match_index-1]
-    data = cb2.get_fallofwicketsGraph(sid, mid, inning_index-1)
-    embed = embedder.fallofwicketsGraph_embed(data, sid, mid, inning_index-1, igs)
-    await ctx.send(file=embed[1], embed=embed[0])
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "FOW")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):
+        await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['bestbatsman', 'batsman', 'bestbatter', 'batter'])
-async def bestbatsmen(ctx, match_index=1, inning_index=1):
+async def bestbatsmen(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
-    data = cb2.get_bestbatsmen(sid, mid, inning_index-1)
-    embed = embedder.bestbatsmen_embed(data)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "BBT")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 @bot.command(aliases=['bestbowler', 'bowlers', 'bestballer', 'bestballers'])
-async def bestbowlers(ctx, match_index=1, inning_index=1):
+async def bestbowlers(ctx, schedule_type=2):
     channel_id = ctx.message.channel.id
-    sid, mid = id_container[channel_id][match_index-1]
-    data = cb2.get_bestbowlers(sid, mid, inning_index-1)
-    embed = embedder.bestbowlers_embed(data)
-    await ctx.send(embed=embed)
+    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    id_container[channel_id] = ids
+    embed = embedder.schedule_embed(data, schedule_type, 5, "BBL")
+    message = await ctx.send(embed=embed)
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    await message.add_reaction(config.arrows_emojis[4])
 
 bot.run(config.auth_token)
