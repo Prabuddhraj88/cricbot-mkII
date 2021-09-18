@@ -2,4 +2,3 @@ requests
 matplotlib
 numpy
 discord
-io
