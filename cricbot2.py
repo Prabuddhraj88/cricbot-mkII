@@ -6,6 +6,7 @@ from embedder import embedder, reaction_listener
 from config import config
 
 id_container = {}
+ids4updater = []
 
 bot=commands.Bot(command_prefix=config.bot_prefix)
 
@@ -19,9 +20,24 @@ async def activity_changer():
     else:data = cb2.get_activity(ids[0][0], ids[0][1])
     await bot.change_presence(activity=discord.Game(name=data), status=discord.Status.idle)
 
+@tasks.loop(seconds=config.STATUS_REFRESH_TIME)
+async def auto_updater():
+    if len(ids4updater) > 0:
+        for ids in ids4updater:
+            channelId, messageId = ids
+            channel = await bot.fetch_channel(channel_id=channelId)
+            print(channelId)
+            msg = await channel.fetch_message(messageId)
+            try:
+                if "NUA" not in msg.embeds[0].footer.text\
+                    and "UA" in msg.embeds[0].footer.text:
+                    await msg.add_reaction(config.arrows_emojis[4])
+            except Exception as e:print(e)
+
 @bot.event
 async def on_ready():
     activity_changer.start()
+    auto_updater.start()
     print('bot is online.')
 
 @bot.event
@@ -49,22 +65,23 @@ async def on_reaction_add(reaction, user):
                 sessionid.pop(0)
                 sid, mid, igs = id_container[channel.id][matchindex-1]
                 embed = reaction_listener.on_schedule_select(sessionid, sid, mid)
-                if igs != None and "INN" in embed.footer.text:
-                    await message.edit(embed=embed)
-                    try:
-                        for i in range(1, 6):
-                            await message.remove_reaction(config.num_emojis[i], bot.user)
-                    except Exception:pass
-                    try:
-                        for i in range(0, 2):
-                            await message.remove_reaction(config.arrows_emojis[i], bot.user)
-                    except Exception:pass
+                await message.edit(embed=embed)
+                try:
+                    for i in range(1, 6):
+                        await message.remove_reaction(config.num_emojis[i], bot.user)
+                except Exception:pass
+                try:
+                    for i in range(0, 2):
+                        await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                except Exception:pass
+                try:
                     if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
-                        await message.add_reaction(config.arrows_emojis[4])
                         await message.add_reaction(config.arrows_emojis[5])
-
+                    if igs != None:    
                         for i in range(1, int(igs)+1):    
                             await message.add_reaction(config.num_emojis[i])
+                except Exception:pass
+                
         if sessionid[0] == "INN":
             if reaction in config.num_emojis:
                 sessionid.pop(0)
@@ -93,24 +110,30 @@ async def on_reaction_add(reaction, user):
                         await message.edit(embed=embed)
                         if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
                             await message.add_reaction(config.arrows_emojis[5])
-                    await message.add_reaction(config.arrows_emojis[4])
                 except IndexError:pass
-        else:
-            if reaction == config.arrows_emojis[4]:
-                embed = reaction_listener.refresher(sessionid)
-                try:
-                    for i in range(1, 5):
-                        await message.remove_reaction(config.num_emojis[i], bot.user)
+        if reaction == config.arrows_emojis[5]:
+            ids4updater.append((channel.id, message.id))
+    if user.bot and message.author == bot.user:
+        channel = message.channel
+        reaction = str(reaction)
+        sessionid = message.embeds[0].footer.text.split('-')
+        if reaction == config.arrows_emojis[4]:
+            print(ids4updater)
+            await message.remove_reaction(str(reaction), user)
+            embed = reaction_listener.refresher(sessionid)
+            try:
+                for i in range(1, 5):
+                    await message.remove_reaction(config.num_emojis[i], bot.user)
+            except Exception:pass
+            try:
+                for i in range(0, 2):
+                    await message.remove_reaction(config.arrows_emojis[i], bot.user)
+            except Exception:pass
+            if len(embed) == 2:
+                try:await message.delete()
                 except Exception:pass
-                try:
-                    for i in range(0, 2):
-                        await message.remove_reaction(config.arrows_emojis[i], bot.user)
-                except Exception:pass
-                if len(embed) == 2:
-                    try:await message.delete()
-                    except Exception:pass
-                    await channel.send(embed=embed[0], file=embed[1])
-                else: await message.edit(embed=embed)
+                await channel.send(embed=embed[0], file=embed[1])
+            else: await message.edit(embed=embed)
 
 @bot.command(aliases=['inv', 'invit'])
 async def invite(ctx):
