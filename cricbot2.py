@@ -256,9 +256,10 @@ async def radio(ctx, cmd="start"):
         await ctx.send("No Voice Channel", "You need to be in a voice channel to use this command!")
         return
     starter_channel = ctx.message.author.voice.channel
-    vc = await starter_channel.connect()    
     if cmd=="start":
+        vc = await starter_channel.connect()
         source = FFmpegPCMAudio(URL, **FFMPEG_OPTIONS)
         vc.play(source)
-    else: vc.stop()
+    else:
+        await ctx.guild.voice_client.disconnect()
 bot.run(config.auth_token)
