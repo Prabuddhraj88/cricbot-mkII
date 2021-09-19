@@ -49,7 +49,7 @@ def get_schedules(type_index:int, limit:int, searchby=None):
         container.append((series_name, versus, ground, datentime, title, state, status))
     if searchby != None:
         for i in container:
-            if searchby not in i[2]:
+            if searchby not in i[0]:
                 container.remove(i)
     if container == []: return None
     return container[-5:], idcontainer[-5:]
