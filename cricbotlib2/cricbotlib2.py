@@ -47,12 +47,14 @@ def get_schedules(type_index:int, limit:int, searchby=None):
         total_innings = match["liveInning"]
         idcontainer.append((sid, mid, total_innings))
         container.append((series_name, versus, ground, datentime, title, state, status))
+    shsid, shmid = 0, 0
     if searchby != None:
         for i in container:
-            if searchby not in i[0]:
-                container.remove(i)
+            if str(searchby) in i[0]:
+                shsid, shmid, _ = idcontainer[container.index(i)]
+                break
     if container == []: return None
-    return container[-5:], idcontainer[-5:]
+    return container[-5:], idcontainer[-5:], (shsid, shmid)
 
 def get_player(sid:int, mid:int, player_index:int, team_index:int):
     url = HEAD_URL[:-3] + URLS.home + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
