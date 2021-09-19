@@ -27,7 +27,6 @@ async def auto_updater():
         for ids in ids4updater:
             channelId, messageId = ids
             channel = await bot.fetch_channel(channel_id=channelId)
-            print(channelId)
             msg = await channel.fetch_message(messageId)
             try:
                 if "NUA" not in msg.embeds[0].footer.text\
@@ -119,6 +118,7 @@ async def on_reaction_add(reaction, user):
             ids4updater.append((channel.id, message.id))
         if reaction == config.arrows_emojis[6]:
             for i in ids4updater:
+                print(i, message.id)
                 if i[1] == message.id:
                     ids4updater.pop(i)
     if user.bot and message.author == bot.user:
