@@ -118,15 +118,13 @@ async def on_reaction_add(reaction, user):
             ids4updater.append((channel.id, message.id))
         if reaction == config.arrows_emojis[6]:
             for i in ids4updater:
-                print(i, message.id)
                 if i[1] == message.id:
-                    ids4updater.pop(i)
+                    ids4updater.remove(i)
     if user.bot and message.author == bot.user:
         channel = message.channel
         reaction = str(reaction)
         sessionid = message.embeds[0].footer.text.split('-')
         if reaction == config.arrows_emojis[4]:
-            print(ids4updater)
             await message.remove_reaction(str(reaction), user)
             embed = reaction_listener.refresher(sessionid)
             try:
