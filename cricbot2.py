@@ -106,14 +106,20 @@ async def on_reaction_add(reaction, user):
                         try:
                             if "NUA" not in embed[0].footer.text and "UA" in embed[0].footer.text:
                                 await message.add_reaction(config.arrows_emojis[5])
+                                await message.add_reaction(config.arrows_emojis[6])
                         except TypeError:pass
                     else: 
                         await message.edit(embed=embed)
                         if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
                             await message.add_reaction(config.arrows_emojis[5])
+                            await message.add_reaction(config.arrows_emojis[6])
                 except IndexError:pass
         if reaction == config.arrows_emojis[5]:
             ids4updater.append((channel.id, message.id))
+        if reaction == config.arrows_emojis[6]:
+            for i in ids4updater:
+                if i[1] == message.id:
+                    ids4updater.pop(i)
     if user.bot and message.author == bot.user:
         channel = message.channel
         reaction = str(reaction)
