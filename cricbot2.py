@@ -78,6 +78,7 @@ async def on_reaction_add(reaction, user):
                 try:
                     if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
                         await message.add_reaction(config.arrows_emojis[5])
+                        await message.add_reaction(config.arrows_emojis[6])
                     if igs != None:    
                         for i in range(1, int(igs)+1):    
                             await message.add_reaction(config.num_emojis[i])
