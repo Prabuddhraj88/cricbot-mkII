@@ -174,7 +174,7 @@ async def credits(ctx):
 @bot.command(aliases=['scor', 'ms', 'miniscore', 'msc'])
 async def score(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "SC")
     message = await ctx.send(embed=embed)
@@ -186,7 +186,7 @@ async def score(ctx, schedule_type=1):
 @bot.command(aliases=['scd', 'scrd', 'scoreard', 'sd'])
 async def scorecard(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "SCRD")
     message = await ctx.send(embed=embed)
@@ -198,7 +198,7 @@ async def scorecard(ctx, schedule_type=1):
 @bot.command(aliases=['commentary', 'comm', 'comment', 'commentry'])
 async def comments(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "CMTRY")
     message = await ctx.send(embed=embed)
@@ -209,7 +209,7 @@ async def comments(ctx, schedule_type=1):
 @bot.command(aliases=['pship', 'partner', 'psp', 'synergy'])
 async def partnership(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data,schedule_type, 5, "PSP")
     message = await ctx.send(embed=embed)
@@ -220,7 +220,7 @@ async def partnership(ctx, schedule_type=1):
 @bot.command(aliases=['pshipg', 'pgraph', 'pspgraph', 'partnership-graph'])
 async def partnershipgraph(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "PSPG")
     message = await ctx.send(embed=embed)
@@ -232,7 +232,7 @@ async def partnershipgraph(ctx, schedule_type=1):
 @bot.command(aliases=['fow', 'fall', 'fowgraph', 'out-graph'])
 async def fallofwicket(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "FOW")
     message = await ctx.send(embed=embed)
@@ -244,7 +244,7 @@ async def fallofwicket(ctx, schedule_type=1):
 @bot.command(aliases=['bestbatsman', 'batsmen', 'bestbatter', 'batter'])
 async def bestbatsmen(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "BBT")
     message = await ctx.send(embed=embed)
@@ -255,7 +255,7 @@ async def bestbatsmen(ctx, schedule_type=1):
 @bot.command(aliases=['bestbowler', 'bowlers', 'bestballer', 'bestballers'])
 async def bestbowlers(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
-    data, ids = cb2.get_schedules(schedule_type, 5, None)
+    data, ids , _ = cb2.get_schedules(schedule_type, 5, None)
     id_container[channel_id] = ids
     embed = embedder.schedule_embed(data, schedule_type, 5, "BBL")
     message = await ctx.send(embed=embed)
