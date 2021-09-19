@@ -19,7 +19,7 @@ You can also host this bot by using following processes:
 
 ```css
 > git clone https://github.com/0x0is1/cricbot-mkII
-> cd cricbot
+> cd cricbot-mkII
 > python3 -m pip install requirements.txt
 > export BOT_TOKEN='<Your bot token here>'
 > python3 cricbot2.py
