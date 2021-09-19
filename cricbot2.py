@@ -14,9 +14,9 @@ bot.remove_command('help')
 
 @tasks.loop(seconds=config.STATUS_REFRESH_TIME)
 async def activity_changer():
-    schedules, ids = cb2.get_schedules(2, 15, searchby=config.TRACK_MATCH)
+    schedules, ids = cb2.get_schedules(1, 40, searchby=config.TRACK_MATCH)
     if len(schedules) == 0:
-        schedules, ids = cb2.get_schedules(2, 5, searchby=None)
+        schedules, ids = cb2.get_schedules(1, 5, searchby=None)
         if len(schedules) == 0:data = "No Live match available."
         else:data = cb2.get_activity(ids[0][0], ids[0][1])
     else:data = cb2.get_activity(ids[0][0], ids[0][1])
