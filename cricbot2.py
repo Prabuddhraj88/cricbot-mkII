@@ -2,7 +2,7 @@ import discord, base64
 from discord.ext.commands.errors import CommandInvokeError, CommandNotFound
 from cricbotlib2 import cricbotlib2 as cb2
 from discord.ext import commands, tasks
-from embedder import embedder, reaction_listener
+from embedder import embedder, reaction_listener, help_embed
 from config import config
 from discord import FFmpegPCMAudio
 
@@ -10,6 +10,7 @@ id_container = {}
 ids4updater = []
 
 bot=commands.Bot(command_prefix=config.bot_prefix)
+bot.remove_command('help')
 
 @tasks.loop(seconds=config.STATUS_REFRESH_TIME)
 async def activity_changer():
@@ -78,11 +79,10 @@ async def on_reaction_add(reaction, user):
                     if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
                         await message.add_reaction(config.arrows_emojis[5])
                         await message.add_reaction(config.arrows_emojis[6])
-                    if igs != None:    
+                    if igs != None and "INN" in embed.footer.text:    
                         for i in range(1, int(igs)+1):    
                             await message.add_reaction(config.num_emojis[i])
-                except Exception:pass
-                
+                except Exception:pass                
         if sessionid[0] == "INN":
             if reaction in config.num_emojis:
                 sessionid.pop(0)
@@ -103,11 +103,6 @@ async def on_reaction_add(reaction, user):
                         try:await message.delete()
                         except Exception:pass
                         message = await channel.send(embed=embed[0], file=embed[1])
-                        try:
-                            if "NUA" not in embed[0].footer.text and "UA" in embed[0].footer.text:
-                                await message.add_reaction(config.arrows_emojis[5])
-                                await message.add_reaction(config.arrows_emojis[6])
-                        except TypeError:pass
                     else: 
                         await message.edit(embed=embed)
                         if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
@@ -139,7 +134,22 @@ async def on_reaction_add(reaction, user):
                 try:await message.delete()
                 except Exception:pass
                 await channel.send(embed=embed[0], file=embed[1])
-            else: await message.edit(embed=embed)
+            else:
+                await message.edit(embed=embed)
+                if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
+                    await message.add_reaction(config.arrows_emojis[5])
+                    await message.add_reaction(config.arrows_emojis[6])
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, CommandNotFound):
+        await ctx.send('`Unknown command` \n Please use right command to operate. `help` for commands details.')
+    if isinstance(error, CommandInvokeError):
+        return
+
+@bot.command(aliases=['hlp', 'h'])
+async def help(ctx):
+    await ctx.send(embed=help_embed.embed())
 
 @bot.command(aliases=['inv', 'invit'])
 async def invite(ctx):
@@ -231,7 +241,7 @@ async def fallofwicket(ctx, schedule_type=1):
         await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
 
-@bot.command(aliases=['bestbatsman', 'batsman', 'bestbatter', 'batter'])
+@bot.command(aliases=['bestbatsman', 'batsmen', 'bestbatter', 'batter'])
 async def bestbatsmen(ctx, schedule_type=1):
     channel_id = ctx.message.channel.id
     data, ids = cb2.get_schedules(schedule_type, 5, None)
@@ -267,4 +277,5 @@ async def radio(ctx, cmd="start"):
         vc.play(source)
     else:
         await ctx.guild.voice_client.disconnect()
+
 bot.run(config.auth_token)
