@@ -28,11 +28,28 @@ async def auto_updater():
         for ids in ids4updater:
             channelId, messageId = ids
             channel = await bot.fetch_channel(channel_id=channelId)
-            msg = await channel.fetch_message(messageId)
+            message = await channel.fetch_message(messageId)
             try:
-                if "NUA" not in msg.embeds[0].footer.text\
-                    and "UA" in msg.embeds[0].footer.text:
-                    await msg.add_reaction(config.arrows_emojis[4])
+                if "NUA" not in message.embeds[0].footer.text and "UA" in message.embeds[0].footer.text:
+                    sessionid = message.embeds[0].footer.text.split('-')
+                    embed = reaction_listener.refresher(sessionid)
+                    try:
+                        for i in range(1, 5):
+                            await message.remove_reaction(config.num_emojis[i], bot.user)
+                    except Exception:pass
+                    try:
+                        for i in range(0, 2):
+                            await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                    except Exception:pass
+                    if len(embed) == 2:
+                        try:await message.delete()
+                        except Exception:pass
+                        await channel.send(embed=embed[0], file=embed[1])
+                    else:
+                        await message.edit(embed=embed)
+                        if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
+                            await message.add_reaction(config.arrows_emojis[5])
+                            await message.add_reaction(config.arrows_emojis[6])
             except Exception as e:print(e)
 
 @bot.event
@@ -109,36 +126,33 @@ async def on_reaction_add(reaction, user):
                             await message.add_reaction(config.arrows_emojis[5])
                             await message.add_reaction(config.arrows_emojis[6])
                 except IndexError:pass
+        if sessionid[0] == "FMTR":
+            if reaction in config.num_emojis:
+                if sessionid[1] == "0": # team ranking
+                    format_index = config.num_emojis.index(reaction)-1
+                    data = cb2.get_team_rankings(format_index)
+                    embed = embedder.gettranking_embed(data, format_index)
+                    for i in range(1, 4): await message.remove_reaction(config.num_emojis[i], bot.user)
+                    await message.edit(embed=embed)
+                if sessionid[1] == "1": # player ranking
+                    if sessionid[2] == "0":
+                        # stage 1 : get role
+                        format_index = config.num_emojis.index(reaction)-1
+                        embed = embedder.role_embed(format_index, sessionid[1])
+                        await message.edit(embed=embed)
+                    if sessionid[2] == "1":
+                        # stage 2: get data
+                        role_index = config.num_emojis.index(reaction)-1
+                        data = cb2.get_players_rankings(sessionid[3], role_index)
+                        embed = embedder.getpranking_embed(data, sessionid[3], role_index)
+                        for i in range(1, 4): await message.remove_reaction(config.num_emojis[i], bot.user)
+                        await message.edit(embed=embed)
         if reaction == config.arrows_emojis[5]:
             ids4updater.append((channel.id, message.id))
         if reaction == config.arrows_emojis[6]:
             for i in ids4updater:
                 if i[1] == message.id:
                     ids4updater.remove(i)
-    if user.bot and message.author == bot.user:
-        channel = message.channel
-        reaction = str(reaction)
-        sessionid = message.embeds[0].footer.text.split('-')
-        if reaction == config.arrows_emojis[4]:
-            await message.remove_reaction(str(reaction), user)
-            embed = reaction_listener.refresher(sessionid)
-            try:
-                for i in range(1, 5):
-                    await message.remove_reaction(config.num_emojis[i], bot.user)
-            except Exception:pass
-            try:
-                for i in range(0, 2):
-                    await message.remove_reaction(config.arrows_emojis[i], bot.user)
-            except Exception:pass
-            if len(embed) == 2:
-                try:await message.delete()
-                except Exception:pass
-                await channel.send(embed=embed[0], file=embed[1])
-            else:
-                await message.edit(embed=embed)
-                if "NUA" not in embed.footer.text and "UA" in embed.footer.text:
-                    await message.add_reaction(config.arrows_emojis[5])
-                    await message.add_reaction(config.arrows_emojis[6])
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -150,6 +164,10 @@ async def on_command_error(ctx, error):
 @bot.command(aliases=['hlp', 'h'])
 async def help(ctx):
     await ctx.send(embed=help_embed.embed())
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send('Pong! `{}ms`'.format(round(bot.latency * 1000)))
 
 @bot.command(aliases=['inv', 'invit'])
 async def invite(ctx):
@@ -277,5 +295,12 @@ async def radio(ctx, cmd="start"):
         vc.play(source)
     else:
         await ctx.guild.voice_client.disconnect()
+
+@bot.command(aliases=['rank', 'ranking', 'stats', 'statics'])
+async def rankings(ctx, rn="team"):
+    rntype = ["team", "player"]
+    embed = embedder.format_embed(rntype.index(rn))
+    message = await ctx.send(embed=embed)
+    for i in range(1, 4):await message.add_reaction(config.num_emojis[i])
 
 bot.run(config.auth_token)
