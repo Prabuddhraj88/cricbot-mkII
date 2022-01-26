@@ -179,3 +179,52 @@ def getinning_embed(sessionid):
     embed = discord.Embed(title=f"Select the inning")
     embed.set_footer(text=sessionid)
     return embed
+
+def format_embed(rntype):
+    name = "Select format:"
+    formats = ["test", "odi", "t20i"]
+    sessionid = f"FMTR-{rntype}-0"
+    value = ""
+    for i, j in enumerate(formats): value+=f"{i+1}. {j.upper()}\n"
+    embed = discord.Embed()
+    embed.add_field(name=name, value=value, inline=False)
+    embed.set_footer(text=sessionid)
+    return embed
+
+def role_embed(format_index, rntype):
+    name = "Select role:"
+    roles = ["bowl", "bat", "allround"]
+    sessionid = f"FMTR-{rntype}-1-{format_index}"
+    value = ""
+    for i, j in enumerate(roles):
+        value += f"{i+1}. {j.upper()}\n"
+    embed = discord.Embed()
+    embed.add_field(name=name, value=value, inline=False)
+    embed.set_footer(text=sessionid)
+    return embed
+
+def gettranking_embed(data, format_index):
+    formats = ["test", "odi", "t20i"]
+    format_ = formats[format_index]
+    embed = discord.Embed(title=f"Team Ranking | {format_}", color=0x03f8fc)
+    name = f'```{string_validator("Player", 12)}　　MATCHES　　POINTS　　RATING```'
+    value = "```py\n"
+    for j, i in enumerate(data[:10]):
+        value += f'{str(j+1)}. {string_validator(i[0], 12)}　{string_validator(i[1], 3)}　{string_validator(i[2], 3)}　{string_validator(i[3], 3)}\n'
+    value += "```"
+    embed.add_field(name=name,value=value, inline=False)
+    return embed
+
+def getpranking_embed(data, format_index, role_index):
+    formats = ["test", "odi", "t20i"]
+    format_ = formats[int(format_index)]
+    roles = ["bowl", "bat", "allround"]
+    role = roles[int(role_index)]
+    embed = discord.Embed(title=f"Player Ranking | {format_} | {role}", color=0x03f8fc)
+    name = f'```{string_validator("Player", 16)}　　TEAM　　RATING```'
+    value = "```py\n"
+    for j, i in enumerate(data):
+        value += f'{str(j+1)}. {string_validator(i[0], 12)}　{string_validator(i[1], 3)}　{string_validator(i[2], 3)}\n'
+    value += "```"
+    embed.add_field(name=name,value=value, inline=False)
+    return embed
