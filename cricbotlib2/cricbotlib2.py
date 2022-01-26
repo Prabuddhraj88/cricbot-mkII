@@ -322,3 +322,26 @@ def get_activity(sid:int, mid:int):
     if team["scoreInfo"] != None:
         string += "(" + team["scoreInfo"] + ")"
     return string
+
+def get_team_rankings(format_index:int):
+    container = []
+    formats = ["test", "odi", "t20i", "all"]
+    format_ = formats[format_index]
+    url = f"https://factory-apis.herokuapp.com/api/cricket/team_ranking?format={format_}"
+    response = requests.get(url).json()
+    for i in response:
+        container.append((i['team']['name'], i['played'], i['points'], i['rating']))
+    return container
+
+def get_players_rankings(format_index:int, role_index:int):
+    container = []
+    formats = ["test", "odi", "t20i", "all"]
+    format_ = formats[int(format_index)]
+    roles = ["bowl", "bat", "allround"]
+    role = roles[role_index]
+    url = f"https://factory-apis.herokuapp.com/api/cricket/player_ranking?role={role}&format={format_}"
+    response = requests.get(url).json()['content']
+    for i in response:
+        player = i['player']
+        container.append((player['fullName'], player['nationality'], i['rating']))
+    return container
