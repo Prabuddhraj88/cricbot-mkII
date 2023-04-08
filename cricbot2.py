@@ -5,6 +5,7 @@ from discord.ext import commands, tasks
 from embedder import embedder, reaction_listener, help_embed
 from config import config
 from discord import FFmpegPCMAudio
+from wsv import wsv
 
 id_container = {}
 ids4updater = []
@@ -302,5 +303,5 @@ async def rankings(ctx, rn="team"):
     embed = embedder.format_embed(rntype.index(rn))
     message = await ctx.send(embed=embed)
     for i in range(1, 4):await message.add_reaction(config.num_emojis[i])
-
+wsv()
 bot.run(config.auth_token)
