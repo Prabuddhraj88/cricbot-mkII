@@ -187,7 +187,7 @@ def get_partnership(sid: int, mid: int, inning_index:int):
     container, subcontainer = [], []
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    try:inning = response["content"]["innings"][inning_index]
     except IndexError: return None
     team_name = inning["team"]["name"]
     team_color = inning["team"]["primaryColor"]
@@ -203,8 +203,9 @@ def get_partnership(sid: int, mid: int, inning_index:int):
 
 def get_partnershipGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
+    print(url)
     response = requests.get(url).json()
-    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    try:inning = response["content"]["innings"][inning_index]
     except IndexError: return None
     state = response["match"]["state"]
     team_name = inning["team"]["name"]
@@ -238,7 +239,7 @@ def get_partnershipGraph(sid: int, mid: int, inning_index:int):
 def get_fallofwicketsGraph(sid: int, mid: int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.statistics + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
-    try:inning = response["content"]["inningsPerformance"]["innings"][inning_index]
+    try:inning = response["content"]["innings"][inning_index]
     except IndexError: return None
     state = response["match"]["state"]
     team_name = inning["team"]["name"]
@@ -323,25 +324,41 @@ def get_activity(sid:int, mid:int):
         string += "(" + team["scoreInfo"] + ")"
     return string
 
-def get_team_rankings(format_index:int):
+def get_series4rankings():
     container = []
-    formats = ["test", "odi", "t20i", "all"]
-    format_ = formats[format_index]
-    url = f"https://factory-apis.herokuapp.com/api/cricket/team_ranking?format={format_}"
+    url = f"https://hs-consumer-api.espncricinfo.com/v1/pages/series/standings?lang=en&seriesId=1022345"
     response = requests.get(url).json()
-    for i in response:
-        container.append((i['team']['name'], i['played'], i['points'], i['rating']))
+    seriesGroups = response["content"]["standingSeriesGroups"]["seriesGroups"]
+    for i in seriesGroups:
+        sid = i["series"]["objectId"]
+        name = i["series"]["longName"]
+        container.append((sid, name))
     return container
 
-def get_players_rankings(format_index:int, role_index:int):
+def get_team_rankings(sid:int):
     container = []
-    formats = ["test", "odi", "t20i", "all"]
-    format_ = formats[int(format_index)]
-    roles = ["bowl", "bat", "allround"]
-    role = roles[role_index]
-    url = f"https://factory-apis.herokuapp.com/api/cricket/player_ranking?role={role}&format={format_}"
-    response = requests.get(url).json()['content']
-    for i in response:
-        player = i['player']
-        container.append((player['fullName'], player['nationality'], i['rating']))
+    url = f"https://hs-consumer-api.espncricinfo.com/v1/pages/series/standings?lang=en&seriesId={sid}"
+    response = requests.get(url).json()
+    standings = response["content"]["standings"]
+    series = standings["series"]
+    teamStats = standings["groups"][0]["teamStats"]
+    container.append(series["longName"])
+    container.append(series["year"])
+    team_container = []
+    for i in teamStats:
+        name = i["teamInfo"]["longName"]
+        image = i["teamInfo"]["imageUrl"]
+        color = i["teamInfo"]["primaryColor"]
+        rank = i["rank"]
+        played = i["matchesPlayed"]
+        won = i["matchesWon"]
+        lost = i["matchesLost"]
+        draw = i["matchesDrawn"]
+        points = i["points"]
+        nrr = i["nrr"]
+        team_container.append((
+            name, image, color, rank, played,
+            won, lost, draw, points, nrr
+        ))
+    container.append(team_container)
     return container
