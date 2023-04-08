@@ -8,8 +8,9 @@ from discord import FFmpegPCMAudio
 
 id_container = {}
 ids4updater = []
+intents = discord.Intents.all()
 
-bot=commands.Bot(command_prefix=config.bot_prefix)
+bot=commands.Bot(command_prefix=config.bot_prefix, intents=intents)
 bot.remove_command('help')
 
 @tasks.loop(seconds=config.STATUS_REFRESH_TIME)
@@ -25,9 +26,8 @@ async def activity_changer():
 @tasks.loop(seconds=config.STATUS_REFRESH_TIME)
 async def auto_updater():
     if len(ids4updater) > 0:
-        for ids in ids4updater:
-            channelId, messageId = ids
-            channel = await bot.fetch_channel(channel_id=channelId)
+        for channelId, messageId in ids4updater:
+            channel = await bot.fetch_channel(channelId)
             message = await channel.fetch_message(messageId)
             try:
                 if "NUA" not in message.embeds[0].footer.text and "UA" in message.embeds[0].footer.text:
