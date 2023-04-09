@@ -7,6 +7,7 @@ from config import config
 from discord import FFmpegPCMAudio
 
 id_container = {}
+sid_container = {}
 ids4updater = []
 intents = discord.Intents.all()
 
@@ -147,6 +148,33 @@ async def on_reaction_add(reaction, user):
                         embed = embedder.getpranking_embed(data, sessionid[3], role_index)
                         for i in range(1, 4): await message.remove_reaction(config.num_emojis[i], bot.user)
                         await message.edit(embed=embed)
+
+        if sessionid[0] == "RNKL":
+            limit = int(sessionid[1])
+            if reaction in config.arrows_emojis:
+                if reaction == config.arrows_emojis[0]:limit -= 5
+                if reaction == config.arrows_emojis[1]:limit += 5
+                if limit < 5:limit = 5
+                data = cb2.get_series4rankings()
+                embed, sids = embedder.getrankingchoice_embed(data, limit)
+                await message.edit(embed=embed)
+                sid_container[channel.id] = sids
+            if reaction in config.num_emojis:
+                sidx = config.num_emojis.index(reaction)
+                sid = sid_container[channel.id][sidx-1]
+                data = cb2.get_team_rankings(sid)
+                embed = embedder.gettranking_embed(data)
+                try:
+                    for i in range(1, 6):
+                        await message.remove_reaction(config.num_emojis[i], bot.user)
+                except Exception:pass
+                try:
+                    for i in range(0, 2):
+                        await message.remove_reaction(config.arrows_emojis[i], bot.user)
+                except Exception:pass
+
+                await message.edit(embed=embed)
+
         if reaction == config.arrows_emojis[5]:
             ids4updater.append((channel.id, message.id))
         if reaction == config.arrows_emojis[6]:
@@ -297,10 +325,13 @@ async def radio(ctx, cmd="start"):
         await ctx.guild.voice_client.disconnect()
 
 @bot.command(aliases=['rank', 'ranking', 'stats', 'statics'])
-async def rankings(ctx, rn="team"):
-    rntype = ["team", "player"]
-    embed = embedder.format_embed(rntype.index(rn))
+async def rankings(ctx):
+    data = cb2.get_series4rankings()
+    embed, sids = embedder.getrankingchoice_embed(data, 5)
     message = await ctx.send(embed=embed)
-    for i in range(1, 4):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[0])
+    for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
+    await message.add_reaction(config.arrows_emojis[1])
+    sid_container[message.channel.id] = sids
 
 bot.run(config.auth_token)
