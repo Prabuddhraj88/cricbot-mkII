@@ -12,6 +12,7 @@ def embed():
     embed.add_field(name="Commentary:", value='`commentary [0/1/2]`', inline=True)
     embed.add_field(name="Best Batsmen:", value='`batsmen [0/1/2]`', inline=True)
     embed.add_field(name="Best Bowlers:", value='`bowlers [0/1/2]`', inline=True)
+    embed.add_field(name="Rankings:", value='`rank`', inline=True)
     embed.add_field(name="Radio:", value='`radio [start/stop]`', inline=True)
     embed.add_field(name="Invite bot:", value='`inv`', inline=True)
     embed.add_field(name="Join server:", value='`join`', inline=True)
