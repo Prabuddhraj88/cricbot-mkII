@@ -139,8 +139,7 @@ def get_scorecard(sid:int, mid:int, inning_index:int):
     url = HEAD_URL[:-3] + URLS.scorecard + URLS.lang + URLS.sid + str(sid) + URLS.mid + str(mid)
     response = requests.get(url).json()
     state = response["match"]["state"]
-    scorecard = response["content"]["scorecard"]
-    inning = scorecard["innings"][inning_index]
+    inning = response["content"]["innings"][inning_index]
     team_name = inning["team"]["longName"]
     team_color = inning["team"]["primaryColor"]
     team_logo = URLS.imgProvSv + inning["team"]["image"]["url"]
@@ -346,7 +345,7 @@ def get_team_rankings(sid:int):
     container.append(series["year"])
     team_container = []
     for i in teamStats:
-        name = i["teamInfo"]["longName"]
+        name = i["teamInfo"]["abbreviation"]
         image = i["teamInfo"]["imageUrl"]
         color = i["teamInfo"]["primaryColor"]
         rank = i["rank"]
