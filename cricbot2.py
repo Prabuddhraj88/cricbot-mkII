@@ -1,3 +1,4 @@
+
 import discord, base64
 from discord.ext.commands.errors import CommandInvokeError, CommandNotFound
 from cricbotlib2 import cricbotlib2 as cb2
@@ -5,6 +6,7 @@ from discord.ext import commands, tasks
 from embedder import embedder, reaction_listener, help_embed
 from config import config
 from discord import FFmpegPCMAudio
+from wsv import wsv
 
 id_container = {}
 sid_container = {}
@@ -333,5 +335,5 @@ async def rankings(ctx):
     for i in range(1, 6):await message.add_reaction(config.num_emojis[i])
     await message.add_reaction(config.arrows_emojis[1])
     sid_container[message.channel.id] = sids
-
+wsv()
 bot.run(config.auth_token)
