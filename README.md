@@ -1,13 +1,11 @@
 # Cricbot 2.0 - ESPN cricket discord bot
 
-[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/0x0is1off@gmail.com)
-![Version](https://img.shields.io/badge/Version-1.0.1-red)
-[![Invite](https://img.shields.io/badge/Invite-Bot-pink)](https://discord.com/oauth2/authorize?client_id=830809161599025202&permissions=10304&scope=bot)
-[![Join](https://img.shields.io/badge/Join-Discord-blue)](https://discord.gg/PyzaTzs2cF)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/0x0is1)
+![Version](https://img.shields.io/badge/Version-1.0.2-red)
 
 
 ## Description
-Cricbot is a discord bot made with [Cricbot API](https://github.com/0x0is1/cricbot-api2) developed by [0x0is1](https://github.com/0x0is1) to provide all live data from ESPN Cricket directly to your discord server.
+Cricbot is a discord bot made with [Cricbot API](https://github.com/0x0is1/cricbot-api2) to provide all live data from ESPN Cricket directly to your discord server.
 
 ## Install
 You can [invite](https://discord.com/oauth2/authorize?client_id=830809161599025202&permissions=10304&scope=bot) link to call this bot your discord server.
@@ -51,6 +49,7 @@ Any device that can run Python3.5+ including raspberry pi and other OS'es.
 * `bestbowlers`: [0/1/2]
 * `commentary`: [0/1/2]
 * `radio`: [start/stop]
+* `rankings`
 
 ## Feedback and bug report
 
@@ -83,6 +82,9 @@ Send feedback or bug report to our developers on this (0x0is1@protonmail.com).
 
 * Score<br>
 <img src="https://raw.githubusercontent.com/0x0is1/inproject-asset-container/master/Screenshot from 2021-09-20 01-26-38.png" width=50% height=50%> </img>
+
+* Rankings<br>
+<img src="https://raw.githubusercontent.com/0x0is1/inproject-asset-container/master/Screenshot%20from%202023-04-09%2023-01-45.png" width=50% height=50%>
 
 * Radio<br>
 <img src="https://raw.githubusercontent.com/0x0is1/inproject-asset-container/master/image.png" width=50% height=50%> </img>
